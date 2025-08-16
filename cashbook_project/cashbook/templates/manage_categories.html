@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Categories</h2>
+    {% if categories %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                    <tr>
+                        <td>{{ category.name }}</td>
+                        <td>
+                            <a href="{% url 'edit_category' category.id %}" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="{% url 'delete_category' category.id %}" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No categories found. You can add categories when creating a cash entry.</p>
+    {% endif %}
+    <a href="{% url 'homepage' %}" class="btn btn-secondary mt-3">Back to Home</a>
+</div>
+{% endblock %}

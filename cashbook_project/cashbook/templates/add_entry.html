@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Add {{ transaction_type }} for {{ book.name }}</h2>
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Form Errors:</strong>
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" id="cashEntryForm">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_transaction_type" class="form-label">Transaction Type</label>
+            {{ form.transaction_type }}
+        </div>
+        <div class="mb-3">
+            <label for="id_amount" class="form-label">Amount</label>
+            {{ form.amount }}
+        </div>
+        <div class="mb-3">
+            <label for="id_date" class="form-label">Date</label>
+            {{ form.date }}
+        </div>
+        <div class="mb-3">
+            <label for="id_time" class="form-label">Time</label>
+            {{ form.time }}
+        </div>
+        <div class="mb-3">
+            <label for="id_remarks" class="form-label">Remarks</label>
+            {{ form.remarks }}
+        </div>
+        <div class="mb-3">
+            <label for="id_category" class="form-label">Category</label>
+            <div class="input-group">
+                {{ form.category }}
+                {% if user.groups.all.0.name == 'Admin' or user.groups.all.0.name == 'Manager' %}
+                    <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="id_image" class="form-label">Bill Image</label>
+            {{ form.image }}
+        </div>
+        <div class="mb-3">
+            <label for="id_optional_field" class="form-label">Optional Field</label>
+            {{ form.optional_field }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+
+    <!-- Add Category Modal -->
+    {% if user.groups.all.0.name == 'Admin' or user.groups.all.0.name == 'Manager' %}
+        <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addCategoryModalLabel">Add New Category</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="addCategoryForm" method="post">
+                            {% csrf_token %}
+                            <input type="hidden" name="add_category" value="1">
+                            <div class="mb-3">
+                                <label for="id_name" class="form-label">Category Name</label>
+                                {{ category_form.name }}
+                            </div>
+                            <div id="categoryFormErrors" class="text-danger"></div>
+                            <button type="submit" class="btn btn-primary">Save Category</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+if (typeof jQuery === 'undefined') {
+    console.error('jQuery is not loaded. Please ensure jQuery is included before this script.');
+    alert('jQuery is not loaded. Please check the console for details.');
+} else {
+    console.log('jQuery version:', jQuery.fn.jquery);
+    jQuery(document).ready(function($) {
+        $('#addCategoryForm').on('submit', function(e) {
+            e.preventDefault();
+            $.ajax({
+                url: window.location.pathname,
+                type: 'POST',
+                data: $(this).serialize(),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Add new category to dropdown and select it
+                        const newOption = $('<option>', {
+                            value: response.category_id,
+                            text: response.category_name,
+                            selected: true
+                        });
+                        $('#id_category').append(newOption);
+                        $('#addCategoryModal').modal('hide');
+                        $('#categoryFormErrors').empty();
+                        alert('Category added successfully.');
+                    } else {
+                        $('#categoryFormErrors').html('<ul>' + $.map(response.errors, function(errors, field) {
+                            return $.map(errors, function(error) {
+                                return '<li>' + error + '</li>';
+                            }).join('');
+                        }).join('') + '</ul>');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX error:', status, error);
+                    $('#categoryFormErrors').html('<p>Error adding category. Please try again.</p>');
+                }
+            });
+        });
+    });
+}
+</script>
+
+<!-- Include Bootstrap Icons for the plus icon -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<h2>{{ transaction_type }} Entry for {{ book.name }}</h2>
+<p><strong>Date:</strong> {{ book_detail.date|default:"Today" }}</p>
+<p><strong>Time:</strong> {{ book_detail.time|default:"Now" }}</p>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %} {% endcomment %}

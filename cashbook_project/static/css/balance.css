@@ -1,0 +1,95 @@
+/* balance.css */
+.balance-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.balance-card {
+    flex: 1;
+    min-width: 200px;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.balance-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.balance-card.cash-in {
+    background: linear locura(135deg, #28a745, #34c759);
+    color: white;
+}
+
+.balance-card.cash-out {
+    background: linear-gradient(135deg, #dc3545, #ff6b6b);
+    color: white;
+}
+
+.balance-card.net-balance.positive {
+    background: linear-gradient(135deg, #007bff, #4dabf7);
+    color: white;
+}
+
+.balance-card.net-balance.negative {
+    background: linear-gradient(135deg, #ff073a, #ff4d6d);
+    color: white;
+}
+
+.label {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.amount {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+    transition: transform 0.2s ease;
+}
+
+.balance-card:hover .amount {
+    transform: scale(1.1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .balance-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .balance-card {
+        min-width: 100%;
+    }
+
+    .amount {
+        font-size: 1.8rem;
+    }
+}

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Cashbook Dashboard</h2>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Cash In</h5>
+                <p class="card-text cash-in">{{ cash_in|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Cash Out</h5>
+                <p class="card-text cash-out">{{ cash_out|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Net Balance</h5>
+                <p class="card-text {% if net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">{{ net_balance|floatformat:2 }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="get" class="mb-3">
+    <div class="row">
+        <div class="col-md-3">
+            <input type="date" name="date" class="form-control" value="{{ request.GET.date }}">
+        </div>
+        <div class="col-md-3">
+            <select name="category" class="form-control">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="member" class="form-control" placeholder="Member" value="{{ request.GET.member }}">
+        </div>
+        <div class="col-md-3">
+            <select name="type" class="form-control">
+                <option value="">All Types</option>
+                <option value="IN" {% if request.GET.type == 'IN' %}selected{% endif %}>Cash In</option>
+                <option value="OUT" {% if request.GET.type == 'OUT' %}selected{% endif %}>Cash Out</option>
+            </select>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Filter</button>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Amount</th>
+            <th>Category</th>
+            <th>Member</th>
+            <th>Remarks</th>
+            <th>Image</th>
+            <th>Add Field</th>
+            <th>Entered By</th>
+            <th>Last Updated</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in entries %}
+            <tr>
+                <td>{{ entry.date }}</td>
+                <td>{{ entry.time }}</td>
+                <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
+                    {{ entry.amount|floatformat:2 }}
+                </td>
+                <td>{{ entry.category.name }}</td>
+                <td>{{ entry.member }}</td>
+                <td>{{ entry.remarks }}</td>
+                <td>
+                    {% if entry.image %}
+                        <a href="{{ entry.image.url }}" target="_blank">View</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ entry.add_field|default:"-" }}</td>
+                <td>{{ entry.user.username }}</td>
+                <td>{{ entry.updated_at }}</td>
+                <td>
+                    <a href="{% url 'edit_entry' entry.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'delete_entry' entry.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

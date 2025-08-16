@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Entry for {{ book.name }}</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+<h2>Edit Entry for {{ book.name }}</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %} {% endcomment %}

@@ -1,0 +1,1 @@
+web: gunicorn cashbook_project.wsgi:application --log-file -

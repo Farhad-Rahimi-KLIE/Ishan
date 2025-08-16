@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Delete Entry</h2>
+    <p>Are you sure you want to delete this entry?</p>
+    <p><strong>Amount:</strong> {{ entry.amount|floatformat:2 }} ({{ entry.transaction_type }})</p>
+    <p><strong>Date & Time:</strong> {{ entry.date }} {{ entry.time }}</p>
+    <p><strong>Remarks:</strong> {{ entry.remarks|default:"-" }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Delete</button>
+        <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
+
+{% comment %} {% extends 'base.html' %}
+{% block content %}
+<h2>Delete Entry</h2>
+<p>Are you sure you want to delete this {{ entry.transaction_type }} entry of {{ entry.amount }} from {{ book.name }}?</p>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Confirm Delete</button>
+    <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %} {% endcomment %}

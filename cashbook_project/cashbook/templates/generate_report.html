@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Generate Report for {{ book.name }}</h2>
+    <p>Select the report type and scope below:</p>
+    <form method="get" action="{% url 'download_report' book.id %}">
+        <div class="mb-3">
+            <label for="report_type" class="form-label">Report Type</label>
+            <select name="report_type" id="report_type" class="form-control" required>
+                <option value="" disabled selected>Select report type</option>
+                <option value="pdf">PDF</option>
+                <option value="excel">Excel</option>
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="report_scope" class="form-label">Report Scope</label>
+            <select name="report_scope" id="report_scope" class="form-control" required>
+                <option value="" disabled selected>Select report scope</option>
+                <option value="all">All Entries</option>
+                <option value="category">Category-wise</option>
+            </select>
+        </div>
+        <div class="mb-3" id="category_select" style="display: none;">
+            <label for="category" class="form-label">Select Category</label>
+            <select name="category" id="category" class="form-control">
+                <option value="" disabled selected>Select a category</option>
+                {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Generate Report</button>
+        <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<script>
+jQuery(document).ready(function($) {
+    $('#report_scope').on('change', function() {
+        if ($(this).val() === 'category') {
+            $('#category_select').show();
+            $('#category').prop('required', true);
+        } else {
+            $('#category_select').hide();
+            $('#category').prop('required', false);
+        }
+    });
+});
+</script>
+{% endblock %}

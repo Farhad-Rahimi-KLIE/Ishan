@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Welcome, {{ user.username }}</h2>
+    <h3>Your Books</h3>
+    {% if books_with_balance %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Net Balance</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in books_with_balance %}
+                    <tr>
+                        <td>{{ item.book.name }}</td>
+                        <td class="{% if item.net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
+                            {{ item.net_balance|floatformat:2 }}
+                        </td>
+                        <td>
+                            <a href="{% url 'book_detail' item.book.id %}" class="btn btn-sm btn-primary">View</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No books found. {% if not user.groups.all.0.name == 'User' %}<a href="{% url 'add_book' %}">Create one</a>.{% endif %}</p>
+    {% endif %}
+    {% if user.groups.all.0.name == 'Admin' %}
+        <a href="{% url 'manage_users' %}" class="btn btn-primary mt-3">Manage Users</a>
+    {% endif %}
+</div>
+{% endblock %}
