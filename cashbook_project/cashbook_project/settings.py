@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
-# ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=Csv())
 
 # Application definition
 
@@ -90,7 +90,7 @@ DATABASES = {
     }
 }
 
-DATABASES["default"] = dj_database_url.parse("postgresql://cashbook_database_user:1X8BDHgUbWb7rVeQtnk12MFl6MMvhStl@dpg-d2g18gili9vc73e6uadg-a.oregon-postgres.render.com/cashbook_database")
+DATABASES["default"] = dj_database_url.parse(config("DATABASE_URL"))
 
 
 # Password validation
