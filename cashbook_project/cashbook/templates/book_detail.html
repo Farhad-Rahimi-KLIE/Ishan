@@ -21,46 +21,33 @@
         background: linear-gradient(135deg, #ff073a, #ff4d6d);
         color: white;
     }
+    .table .cash-in {
+        color: #28a745 !important; /* Green for Cash In and positive values in table */
+    }
+    .table .cash-out {
+        color: #dc3545 !important; /* Red for Cash Out and negative values in table */
+    }
+    .cash-in {
+        color: #28a745; /* Green for inline <p> */
+    }
+    .cash-out {
+        color: #dc3545; /* Red for inline <p> */
+    }
 </style>
 
 <div class="container mt-2">
     <h2>{{ book.name }}</h2>
- 
-    <div class="row g-3 justify-content-center">
-        <!-- Cash In Card -->
-        <div class="col-md-4 col-sm-12">
-            <div class="card bg-cash-in shadow-sm h-100 border-0">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-uppercase fw-bold mb-3">Cash In</h5>
-                    <p class="card-text display-6 fw-bold">${{ cash_in|floatformat:2 }}</p>
-                    <span class="badge bg-light text-dark">Income</span>
-                </div>
-            </div>
-        </div>
-        <!-- Cash Out Card -->
-        <div class="col-md-4 col-sm-12">
-            <div class="card bg-cash-out shadow-sm h-100 border-0">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-uppercase fw-bold mb-3">Cash Out</h5>
-                    <p class="card-text display-6 fw-bold">${{ cash_out|floatformat:2 }}</p>
-                    <span class="badge bg-light text-dark">Expenses</span>
-                </div>
-            </div>
-        </div>
-        <!-- Net Balance Card -->
-        <div class="col-md-4 col-sm-12">
-            <div class="card {% if net_balance >= 0 %}bg-net-positive{% else %}bg-net-negative{% endif %} shadow-sm h-100 border-0">
-                <div class="card-body text-center">
-                    <h5 class="card-title text-uppercase fw-bold mb-3">Net Balance</h5>
-                    <p class="card-text display-6 fw-bold">${{ net_balance|floatformat:2 }}</p>
-                    <span class="badge bg-light text-dark {% if net_balance >= 0 %}text-success{% else %}text-danger{% endif %}">
-                        {% if net_balance >= 0 %}Profit{% else %}Loss{% endif %}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+
+    {% comment %} <p>Cash In: <span class="cash-in">{{ cash_in }}</span> | Cash Out: <span class="cash-out">{{ cash_out }}</span> | Net Balance: <span class="{% if net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">{{ net_balance }}</span></p> {% endcomment %}
+   
     
+      <p class="mb-4">
+        Cash In: <span class="cash-in">{{ cash_in|floatformat:2 }}</span> |
+        Cash Out: <span class="cash-out">{{ cash_out|floatformat:2 }}</span> |
+        Net Balance: <span class="{% if net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">{{ net_balance|floatformat:2 }}</span>
+    </p>
+
+
     <!-- Action Buttons -->
     {% if is_book_admin %}
     <div class="mb-3 mt-2">
@@ -126,13 +113,29 @@
                 {% for entry, serialized_entry, running_balance in entry_data %}
                     <tr class="entry-row" data-entry='{{ serialized_entry|safe }}'>
                         <td>{{ entry.date }}</td>
+                        <td class="{% if entry.transaction_type == 'IN' %} cash-in {% else %} cash-out {% endif %}">
+                            {{ entry.get_transaction_type_display }}
+                        </td>
+                        <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
+                            {{ entry.amount|floatformat:2 }}
+                        </td>
+                        <td>{{ entry.category.name|default:"N/A" }}</td>
+                        <td>{{ entry.remarks|default:"N/A" }}</td>
+                        <td >
+                            {{ running_balance|floatformat:2 }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% comment %} {% for entry, serialized_entry, running_balance in entry_data %}
+                    <tr class="entry-row" data-entry='{{ serialized_entry|safe }}'>
+                        <td>{{ entry.date }}</td>
                         <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">{{ entry.get_transaction_type_display }}</td>
                         <td>{{ entry.amount }}</td>
                         <td>{{ entry.category.name|default:"N/A" }}</td>
                         <td>{{ entry.remarks|default:"N/A" }}</td>
                         <td class="{% if running_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">{{ running_balance }}</td>
                     </tr>
-                {% endfor %}
+                {% endfor %} {% endcomment %}
             </tbody>
         </table>
         <!-- Pagination -->

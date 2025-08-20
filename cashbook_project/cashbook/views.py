@@ -101,7 +101,7 @@ def book_detail(request, book_id):
         messages.error(request, 'You do not have permission to view this book.')
         return redirect('homepage')
     
-    entries = CashEntry.objects.filter(book=book)
+    entries = CashEntry.objects.filter(book=book).order_by('-date')
     if not (request.user.groups.filter(name='Admin').exists() or request.user.groups.filter(name='Manager').exists()):
         entries = entries.filter(
             models.Q(user=request.user) | models.Q(book__members__user=request.user, book__members__role='admin')
@@ -240,6 +240,66 @@ def add_book(request):
         form = BookForm()
     return render(request, 'add_book.html', {'form': form})
 
+# @login_required
+# def add_entry(request, book_id, transaction_type):
+#     book = get_object_or_404(Book, id=book_id)
+#     if not (request.user.groups.filter(name='Admin').exists() or 
+#             request.user.groups.filter(name='Manager').exists() or 
+#             book.created_by == request.user or 
+#             BookMember.objects.filter(book=book, user=request.user, role='admin').exists()):
+#         messages.error(request, 'You do not have permission to add entries to this book.')
+#         return redirect('book_detail', book_id=book.id)
+    
+#     if request.method == 'POST':
+#         if 'add_category' in request.POST:
+#             if request.user.groups.filter(name='Partner').exists():
+#                 messages.error(request, 'Partners cannot create categories.')
+#                 return redirect('add_entry', book_id=book_id, transaction_type=transaction_type)
+#             category_form = CategoryForm(request.POST)
+#             if category_form.is_valid():
+#                 category = category_form.save(commit=False)
+#                 category.created_by = request.user
+#                 category.save()
+#                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+#                     return JsonResponse({
+#                         'success': True,
+#                         'category_id': category.id,
+#                         'category_name': category.name
+#                     })
+#                 else:
+#                     messages.success(request, 'Category added successfully.')
+#                     return redirect('add_entry', book_id=book_id, transaction_type=transaction_type)
+#             else:
+#                 if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+#                     return JsonResponse({
+#                         'success': False,
+#                         'errors': category_form.errors
+#                     }, status=400)
+#                 messages.error(request, 'Error adding category. Please check the form.')
+#         else:
+#             form = CashEntryForm(request.POST, request.FILES)
+#             if form.is_valid():
+#                 entry = form.save(commit=False)
+#                 entry.book = book
+#                 entry.user = request.user
+#                 entry.transaction_type = transaction_type
+#                 entry.save()
+#                 messages.success(request, f'{"Cash In" if transaction_type == "IN" else "Cash Out"} added successfully.')
+#                 return redirect('book_detail', book_id=book.id)
+#             else:
+#                 messages.error(request, 'Error adding entry. Please check the form.')
+#     else:
+#         form = CashEntryForm(initial={'transaction_type': transaction_type})
+    
+#     category_form = CategoryForm()
+#     return render(request, 'add_entry.html', {
+#         'form': form,
+#         'category_form': category_form,
+#         'book': book,
+#         'transaction_type': transaction_type,
+#     })
+
+
 @login_required
 def add_entry(request, book_id, transaction_type):
     book = get_object_or_404(Book, id=book_id)
@@ -285,6 +345,8 @@ def add_entry(request, book_id, transaction_type):
                 entry.transaction_type = transaction_type
                 entry.save()
                 messages.success(request, f'{"Cash In" if transaction_type == "IN" else "Cash Out"} added successfully.')
+                if 'save_and_add' in request.POST:
+                    return redirect('add_entry', book_id=book.id, transaction_type=transaction_type)
                 return redirect('book_detail', book_id=book.id)
             else:
                 messages.error(request, 'Error adding entry. Please check the form.')
@@ -559,39 +621,3 @@ def download_report(request, book_id):
     else:
         messages.error(request, 'Invalid report type selected.')
         return redirect('generate_report', book_id=book_id)    
-
-
-
-# @login_required
-# def invite_member(request, book_id):
-#     book = get_object_or_404(Book, id=book_id)
-#     if not (request.user.groups.filter(name='Admin').exists() or 
-#             book.created_by == request.user or 
-#             BookMember.objects.filter(book=book, user=request.user, role='admin').exists()):
-#         messages.error(request, 'You do not have permission to invite members to this book.')
-#         return redirect('book_detail', book_id=book.id)
-    
-#     if request.method == 'POST':
-#         form = InviteMemberForm(request.POST)
-#         if form.is_valid():
-#             username = form.cleaned_data['username']
-#             role = form.cleaned_data['role']
-#             try:
-#                 user = User.objects.get(username=username)
-#                 if BookMember.objects.filter(book=book, user=user).exists():
-#                     messages.error(request, 'This user is already a member of this book.')
-#                 else:
-#                     BookMember.objects.create(book=book, user=user, role=role)
-#                     messages.success(request, f'{username} has been added as a {role} to {book.name}.')
-#                 return redirect('book_detail', book_id=book.id)
-#             except User.DoesNotExist:
-#                 messages.error(request, 'No user found with this username.')
-#         else:
-#             messages.error(request, 'Error in the form. Please check your input.')
-#     else:
-#         form = InviteMemberForm()
-    
-#     return render(request, 'invite_member.html', {
-#         'form': form,
-#         'book': book,
-#     })
