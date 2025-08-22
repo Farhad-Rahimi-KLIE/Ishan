@@ -65,16 +65,14 @@ def user_logout(request):
 
 @login_required
 def homepage(request):
-    if request.user.groups.filter(name='Admin').exists():
-        books = Book.objects.all()
-    else:
-        # Include books created by or shared with the user
-        books = Book.objects.filter(
-            models.Q(created_by=request.user) | models.Q(members__user=request.user)
-        ).distinct()
+     # Filter books to include only those created by or shared with the user
+    books = Book.objects.filter(
+        models.Q(created_by=request.user) | models.Q(members__user=request.user)
+    ).distinct()
     
     books_with_balance = []
     for book in books:
+        # Filter entries based on user permissions
         entries = CashEntry.objects.filter(book=book)
         if not request.user.groups.filter(name='Admin').exists():
             entries = entries.filter(
@@ -91,6 +89,32 @@ def homepage(request):
     return render(request, 'homepage.html', {
         'books_with_balance': books_with_balance
     })
+    # if request.user.groups.filter(name='Admin').exists():
+    #     books = Book.objects.all()
+    # else:
+    #     # Include books created by or shared with the user
+    #     books = Book.objects.filter(
+    #         models.Q(created_by=request.user) | models.Q(members__user=request.user)
+    #     ).distinct()
+    
+    # books_with_balance = []
+    # for book in books:
+    #     entries = CashEntry.objects.filter(book=book)
+    #     if not request.user.groups.filter(name='Admin').exists():
+    #         entries = entries.filter(
+    #             models.Q(user=request.user) | models.Q(book__members__user=request.user, book__members__role='admin')
+    #         )
+    #     cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
+    #     cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
+    #     net_balance = cash_in - cash_out
+    #     books_with_balance.append({
+    #         'book': book,
+    #         'net_balance': net_balance
+    #     })
+    
+    # return render(request, 'homepage.html', {
+    #     'books_with_balance': books_with_balance
+    # })
 
 @login_required
 def book_detail(request, book_id):
