@@ -17,8 +17,15 @@
                 {% for item in books_with_balance %}
                     <tr>
                         <td>{{ item.book.name }}</td>
-                        <td class="{% if item.net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
+                        {% comment %} <td class="{% if item.net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
                             {{ item.net_balance|floatformat:2 }}
+                        </td> {% endcomment %}
+                        <td class="{% if item.net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
+                          {% if item.net_balance is not None %}
+                                {{ item.net_balance|floatformat:2 }}
+                          {% else %}
+                                0.00
+                          {% endif %}
                         </td>
                         <td>
                             <a href="{% url 'book_detail' item.book.id %}" class="btn btn-sm btn-primary">View</a>

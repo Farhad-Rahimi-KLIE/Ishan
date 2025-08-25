@@ -2,6 +2,83 @@
 
 {% block content %}
 <div class="container mt-4">
+    <h2>Create or Add User for {{ book.name }}</h2>
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Form Errors:</strong>
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_select_user" class="form-label">Select Existing User</label>
+            {{ form.select_user }}
+            <small class="form-text text-muted">Choose an existing user or select "Create New User" to add a new one.</small>
+        </div>
+        <div class="mb-3">
+            <label for="id_username" class="form-label">New Username</label>
+            {{ form.username }}
+            <small class="form-text text-muted">Enter a username only if creating a new user.</small>
+        </div>
+        <div class="mb-3">
+            <label for="id_password" class="form-label">Password</label>
+            {{ form.password }}
+            <small class="form-text text-muted">Enter a password only if creating a new user.</small>
+        </div>
+        <div class="mb-3">
+            <label for="id_system_role" class="form-label">System Role</label>
+            {{ form.system_role }}
+        </div>
+        <div class="mb-3">
+            <label for="id_book_role" class="form-label">Book Role</label>
+            {{ form.book_role }}
+        </div>
+        <button type="submit" class="btn btn-primary">Add User</button>
+        <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+<script>
+document.getElementById('id_select_user').addEventListener('change', function() {
+    const usernameField = document.getElementById('id_username');
+    const passwordField = document.getElementById('id_password');
+    if (this.value) {
+        usernameField.disabled = true;
+        passwordField.disabled = true;
+        usernameField.value = '';
+        passwordField.value = '';
+    } else {
+        usernameField.disabled = false;
+        passwordField.disabled = false;
+    }
+});
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+{% comment %} {% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
     <h2>Create User for {{ book.name }}</h2>
     {% if form.errors %}
         <div class="alert alert-danger">
@@ -40,4 +117,4 @@
         <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

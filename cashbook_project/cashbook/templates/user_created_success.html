@@ -2,6 +2,32 @@
 
 {% block content %}
 <div class="container mt-4">
+    <h2>User Added Successfully</h2>
+    <div class="alert alert-success">
+        <p><strong>User added to {{ book.name }}!</strong></p>
+        <p><strong>Username:</strong> {{ username }}</p>
+        <p><strong>Password:</strong> {{ password }}</p>
+        <p><strong>System Role:</strong> {{ system_role|capfirst }}</p>
+        <p><strong>Book Role:</strong> {{ book_role|capfirst }}</p>
+        <p>
+            {% if password == 'N/A (Existing User)' %}
+                This is an existing user added to the book. No new credentials were created.
+            {% else %}
+                Please share these credentials with the user securely. For security, ask them to change their password after logging in.
+            {% endif %}
+        </p>
+    </div>
+    <a href="{% url 'book_detail' book.id %}" class="btn btn-primary">Back to {{ book.name }}</a>
+    <a href="{% url 'create_user_for_book' book.id %}" class="btn btn-info">Add Another User</a>
+</div>
+{% endblock %}
+
+
+
+{% comment %} {% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
     <h2>User Created Successfully</h2>
     <div class="alert alert-success">
         <p><strong>User created and added to {{ book.name }}!</strong></p>
@@ -14,4 +40,4 @@
     <a href="{% url 'book_detail' book.id %}" class="btn btn-primary">Back to {{ book.name }}</a>
     <a href="{% url 'create_user_for_book' book.id %}" class="btn btn-info">Create Another User</a>
 </div>
-{% endblock %}
+{% endblock %} {% endcomment %}

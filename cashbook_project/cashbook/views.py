@@ -63,24 +63,22 @@ def user_logout(request):
         messages.error(request, 'An error occurred during logout. Please try again.')
         return redirect('homepage')
 
+
 @login_required
 def homepage(request):
-     # Filter books to include only those created by or shared with the user
+    # Filter books to include only those created by or shared with the user
     books = Book.objects.filter(
         models.Q(created_by=request.user) | models.Q(members__user=request.user)
     ).distinct()
     
     books_with_balance = []
     for book in books:
-        # Filter entries based on user permissions
+        # Get all entries for the book, regardless of user permissions for balance calculation
         entries = CashEntry.objects.filter(book=book)
-        if not request.user.groups.filter(name='Admin').exists():
-            entries = entries.filter(
-                models.Q(user=request.user) | models.Q(book__members__user=request.user, book__members__role='admin')
-            )
         cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
         cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
         net_balance = cash_in - cash_out
+        logger.info(f"Book: {book.name}, User: {request.user.username}, Entries: {entries.count()}, Cash In: {cash_in}, Cash Out: {cash_out}, Net Balance: {net_balance}")
         books_with_balance.append({
             'book': book,
             'net_balance': net_balance
@@ -89,32 +87,34 @@ def homepage(request):
     return render(request, 'homepage.html', {
         'books_with_balance': books_with_balance
     })
-    # if request.user.groups.filter(name='Admin').exists():
-    #     books = Book.objects.all()
-    # else:
-    #     # Include books created by or shared with the user
-    #     books = Book.objects.filter(
-    #         models.Q(created_by=request.user) | models.Q(members__user=request.user)
-    #     ).distinct()
+
+# @login_required
+# def homepage(request):
+#      # Filter books to include only those created by or shared with the user
+#     books = Book.objects.filter(
+#         models.Q(created_by=request.user) | models.Q(members__user=request.user)
+#     ).distinct()
     
-    # books_with_balance = []
-    # for book in books:
-    #     entries = CashEntry.objects.filter(book=book)
-    #     if not request.user.groups.filter(name='Admin').exists():
-    #         entries = entries.filter(
-    #             models.Q(user=request.user) | models.Q(book__members__user=request.user, book__members__role='admin')
-    #         )
-    #     cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
-    #     cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
-    #     net_balance = cash_in - cash_out
-    #     books_with_balance.append({
-    #         'book': book,
-    #         'net_balance': net_balance
-    #     })
+#     books_with_balance = []
+#     for book in books:
+#         # Filter entries based on user permissions
+#         entries = CashEntry.objects.filter(book=book)
+#         if not request.user.groups.filter(name='Admin').exists():
+#             entries = entries.filter(
+#                 models.Q(user=request.user) | models.Q(book__members__user=request.user, book__members__role='admin')
+#             )
+#         cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
+#         cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
+#         net_balance = cash_in - cash_out
+#         books_with_balance.append({
+#             'book': book,
+#             'net_balance': net_balance
+#         })
     
-    # return render(request, 'homepage.html', {
-    #     'books_with_balance': books_with_balance
-    # })
+#     return render(request, 'homepage.html', {
+#         'books_with_balance': books_with_balance
+#     })
+
 
 @login_required
 def book_detail(request, book_id):
@@ -199,6 +199,7 @@ def book_detail(request, book_id):
     }
     return render(request, 'book_detail.html', context)
 
+
 @login_required
 def create_user_for_book(request, book_id):
     book = get_object_or_404(Book, id=book_id)
@@ -209,40 +210,97 @@ def create_user_for_book(request, book_id):
         return redirect('book_detail', book_id=book.id)
     
     if request.method == 'POST':
-        form = CreateUserForBookForm(request.POST)
+        form = CreateUserForBookForm(request.POST, request=request)
         if form.is_valid():
+            select_user = form.cleaned_data['select_user']
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
             system_role = form.cleaned_data['system_role']
             book_role = form.cleaned_data['book_role']
             
             try:
-                user = User.objects.create_user(
-                    username=username,
-                    password=password
-                )
-                group, _ = Group.objects.get_or_create(name=system_role.capitalize())
-                user.groups.add(group)
+                if select_user:
+                    # Use existing user
+                    user = select_user
+                    # Check if user is already a member of the book
+                    if BookMember.objects.filter(book=book, user=user).exists():
+                        messages.error(request, f'User {user.username} is already a member of this book.')
+                        return render(request, 'create_user_for_book.html', {'form': form, 'book': book})
+                else:
+                    # Create new user
+                    user = User.objects.create_user(
+                        username=username,
+                        password=password
+                    )
+                    group, _ = Group.objects.get_or_create(name=system_role.capitalize())
+                    user.groups.add(group)
+                
+                # Add user to the book
                 BookMember.objects.create(book=book, user=user, role=book_role)
                 
                 return render(request, 'user_created_success.html', {
                     'book': book,
-                    'username': username,
-                    'password': password,
+                    'username': user.username,
+                    'password': password if not select_user else 'N/A (Existing User)',
                     'system_role': system_role,
                     'book_role': book_role,
                 })
             except Exception as e:
-                messages.error(request, f'Error creating user: {str(e)}')
+                messages.error(request, f'Error creating or adding user: {str(e)}')
         else:
             messages.error(request, 'Error in the form. Please check your input.')
     else:
-        form = CreateUserForBookForm()
+        form = CreateUserForBookForm(request=request)
     
     return render(request, 'create_user_for_book.html', {
         'form': form,
         'book': book,
     })
+
+# @login_required
+# def create_user_for_book(request, book_id):
+#     book = get_object_or_404(Book, id=book_id)
+#     if not (request.user.groups.filter(name='Admin').exists() or 
+#             book.created_by == request.user or 
+#             BookMember.objects.filter(book=book, user=request.user, role='admin').exists()):
+#         messages.error(request, 'You do not have permission to create users for this book.')
+#         return redirect('book_detail', book_id=book.id)
+    
+#     if request.method == 'POST':
+#         form = CreateUserForBookForm(request.POST)
+#         if form.is_valid():
+#             username = form.cleaned_data['username']
+#             password = form.cleaned_data['password']
+#             system_role = form.cleaned_data['system_role']
+#             book_role = form.cleaned_data['book_role']
+            
+#             try:
+#                 user = User.objects.create_user(
+#                     username=username,
+#                     password=password
+#                 )
+#                 group, _ = Group.objects.get_or_create(name=system_role.capitalize())
+#                 user.groups.add(group)
+#                 BookMember.objects.create(book=book, user=user, role=book_role)
+                
+#                 return render(request, 'user_created_success.html', {
+#                     'book': book,
+#                     'username': username,
+#                     'password': password,
+#                     'system_role': system_role,
+#                     'book_role': book_role,
+#                 })
+#             except Exception as e:
+#                 messages.error(request, f'Error creating user: {str(e)}')
+#         else:
+#             messages.error(request, 'Error in the form. Please check your input.')
+#     else:
+#         form = CreateUserForBookForm()
+    
+#     return render(request, 'create_user_for_book.html', {
+#         'form': form,
+#         'book': book,
+#     })
 
 @login_required
 def add_book(request):
