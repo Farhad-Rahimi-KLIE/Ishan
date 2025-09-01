@@ -12,15 +12,15 @@ class Book(models.Model):
 
 class BookMember(models.Model):
     ROLE_CHOICES = (
-        ('admin', 'Admin'),
         ('partner', 'Partner'),
         ('manager', 'Manager'),
-        ('user', 'User'),
+        ('admin', 'Admin'),
     )
     book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='members')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='book_memberships')
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
-    invited_at = models.DateTimeField(auto_now_add=True)
+    # invited_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_book_members', help_text="User who added this member to the book")
 
     class Meta:
         unique_together = ('book', 'user')
@@ -31,6 +31,7 @@ class BookMember(models.Model):
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='categories')  # Tie categories to a book
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 

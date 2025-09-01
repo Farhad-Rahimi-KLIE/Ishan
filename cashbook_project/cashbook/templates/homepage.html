@@ -38,7 +38,7 @@
         <p>No books found. {% if not user.groups.all.0.name == 'User' %}<a href="{% url 'add_book' %}">Create one</a>.{% endif %}</p>
     {% endif %}
     {% if user.groups.all.0.name == 'Admin' %}
-        <a href="{% url 'manage_users' %}" class="btn btn-primary mt-3">Manage Users</a>
+        {% comment %} <a href="{% url 'manage_users_for_book' book.id %}" class="btn btn-primary mt-3">Manage Users</a> {% endcomment %}
     {% endif %}
 </div>
 {% endblock %}

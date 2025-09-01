@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit User {% if book %}for {{ book.name }}{% else %}System-Wide{% endif %}</h2>
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong>Form Errors:</strong>
+            <ul>
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="id_select_user" class="form-label">User</label>
+            <input type="text" class="form-control" value="{{ user.username }}" disabled>
+        </div>
+        <div class="mb-3">
+            <label for="id_system_role" class="form-label">System Role</label>
+            {{ form.system_role }}
+        </div>
+        {% if book %}
+        <div class="mb-3">
+            <label for="id_book_role" class="form-label">Book Role</label>
+            {{ form.book_role }}
+        </div>
+        {% endif %}
+        <button type="submit" class="btn btn-primary">Update User</button>
+        <a href="{% url 'manage_users' book.id|default:'' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

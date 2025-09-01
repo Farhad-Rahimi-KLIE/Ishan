@@ -43,12 +43,12 @@
                                 <a class="nav-link" href="{% url 'add_book' %}">Add Book</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'manage_categories' %}">Categories</a>
+                                <a class="nav-link" href="{% url 'manage_categories'%}">Categories</a>
                             </li>
                         {% endif %}
                         {% if user.groups.all.0.name == 'Admin' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'manage_users' %}">Manage Users</a>
+                                {% comment %} <a class="nav-link" href="{% url 'manage_users_for_book' book.id %}">Manage Users</a> {% endcomment %}
                             </li>
                         {% endif %}
                         <li class="nav-item">

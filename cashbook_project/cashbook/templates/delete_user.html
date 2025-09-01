@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Delete User {% if book %}from {{ book.name }}{% else %}from System{% endif %}</h2>
+    <p>Are you sure you want to {% if book %}remove {{ user.username }} from {{ book.name }}{% else %}delete {{ user.username }} from the system{% endif %}?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirm Delete</button>
+        <a href="{% url 'manage_users' book.id|default:'' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

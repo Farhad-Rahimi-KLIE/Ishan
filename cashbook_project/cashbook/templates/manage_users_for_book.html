@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage Users for {{ book.name }}</h2>
+    <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary mb-3">Back to Book Details</a>
+    
+    {% if is_book_admin %}
+    <a href="{% url 'create_user_for_book' book.id %}" class="btn btn-primary mb-3">Add User to Book</a>
+    {% endif %}
+    
+    {% if book_members %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Book Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for member_data in book_members %}
+            <tr>
+                <td>{{ member_data.member.user.username }}</td>
+                <td>{{ member_data.member.get_role_display }}</td>
+                <td>
+                    {% if member_data.can_manage %}
+                    <a href="{% url 'edit_user_for_book' book.id member_data.member.user.id %}" class="btn btn-sm btn-primary">Edit</a>
+                    <a href="{% url 'delete_user_for_book' book.id member_data.member.user.id %}" class="btn btn-sm btn-danger">Remove</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No members assigned to this book.</p>
+    {% endif %}
+</div>
+{% endblock %}
