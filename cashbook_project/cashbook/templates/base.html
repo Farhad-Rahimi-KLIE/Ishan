@@ -46,11 +46,11 @@
                                 <a class="nav-link" href="{% url 'manage_categories'%}">Categories</a>
                             </li>
                         {% endif %}
-                        {% if user.groups.all.0.name == 'Admin' %}
-                            <li class="nav-item">
-                                {% comment %} <a class="nav-link" href="{% url 'manage_users_for_book' book.id %}">Manage Users</a> {% endcomment %}
-                            </li>
-                        {% endif %}
+                       {% if user.groups.all.0.name == 'Admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'manage_my_users' %}">Manage My Users</a>
+                        </li>
+                    {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                         </li>

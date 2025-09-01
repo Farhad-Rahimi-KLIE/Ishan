@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Manage All Users</h2>
+    <a href="{% url 'homepage' %}" class="btn btn-secondary mb-3">Back to Homepage</a>
+    
+    {% if user_data %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>System Role</th>
+                <th>Books</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for data in user_data %}
+            <tr>
+                <td>{{ data.user.username }}</td>
+                <td>{{ data.system_role }}</td>
+                <td>
+                    {% if data.books %}
+                        <ul>
+                            {% for book_info in data.books %}
+                                <li>{{ book_info.book.name }} ({{ book_info.role }})</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        No books assigned
+                    {% endif %}
+                </td>
+                <td>
+                    {% if data.can_manage %}
+                        <a href="{% url 'edit_user' data.user.id %}" class="btn btn-sm btn-primary">Edit</a>
+                        <a href="{% url 'delete_user' data.user.id %}" class="btn btn-sm btn-danger">Delete</a>
+                    {% else %}
+                        <span class="text-muted">No actions available</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No users found in the system.</p>
+    {% endif %}
+</div>
+{% endblock %}

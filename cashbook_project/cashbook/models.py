@@ -28,6 +28,13 @@ class BookMember(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.role} in {self.book.name}"
 
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_users')
+
+    def __str__(self):
+        return f"Profile for {self.user.username}"
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)

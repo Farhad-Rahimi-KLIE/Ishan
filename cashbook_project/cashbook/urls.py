@@ -28,6 +28,12 @@ urlpatterns = [
     path('book/<int:book_id>/edit_user/<int:user_id>/', views.edit_user_for_book, name='edit_user_for_book'),
     path('book/<int:book_id>/delete_user/<int:user_id>/', views.delete_user_for_book, name='delete_user_for_book'),
     path('book/<int:book_id>/manage_users/', views.manage_users_for_book, name='manage_users_for_book'),
+
+    # path('users/manage/', views.manage_all_users, name='manage_all_users'),
+    path('users/my/', views.manage_my_users, name='manage_my_users'),
+    # Ensure the edit_user and delete_user routes are available without book_id
+    path('user/edit/<int:user_id>/', views.edit_user, name='edit_user'),
+    path('user/delete/<int:user_id>/', views.delete_user, name='delete_user'),
     
     ]
 
