@@ -62,29 +62,59 @@ def user_logout(request):
         logger.error(f"Logout error: {str(e)}")
         messages.error(request, 'An error occurred during logout. Please try again.')
         return redirect('homepage')
-
+    
 @login_required
 def homepage(request):
+    # Get books the user owns or is a member of, sorted by created_at descending
     books = Book.objects.filter(
         Q(created_by=request.user) | Q(members__user=request.user)
-    ).distinct()
+    ).distinct().order_by('-created_at')
     
+    # Calculate net balance for each book
     books_with_balance = []
     for book in books:
-        entries = CashEntry.objects.filter(book=book)
-        # Partners can only view, so no filtering of entries for balance calculation
-        cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
-        cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
-        net_balance = cash_in - cash_out
-        logger.info(f"Book: {book.name}, User: {request.user.username}, Entries: {entries.count()}, Cash In: {cash_in}, Cash Out: {cash_out}, Net Balance: {net_balance}")
+        net_balance = CashEntry.objects.filter(book=book).aggregate(
+            net_balance=Sum('amount')
+        )['net_balance'] or 0.0
         books_with_balance.append({
             'book': book,
             'net_balance': net_balance
         })
     
+    # Log the sorted books for debugging
+    logger.info(f"Homepage books for user {request.user.username}: {[{'name': item['book'].name, 'created_at': item['book'].created_at} for item in books_with_balance]}")
+    
     return render(request, 'homepage.html', {
-        'books_with_balance': books_with_balance
+        'books_with_balance': books_with_balance,
+        'user': request.user
     })
+
+
+# @login_required
+# def homepage(request):
+#     books = Book.objects.filter(
+#         Q(created_by=request.user) | Q(members__user=request.user)
+#     ).distinct()
+    
+#     books_with_balance = []
+#     for book in books:
+#         entries = CashEntry.objects.filter(book=book)
+#         # Partners can only view, so no filtering of entries for balance calculation
+#         cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
+#         cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
+#         net_balance = cash_in - cash_out
+#         logger.info(f"Book: {book.name}, User: {request.user.username}, Entries: {entries.count()}, Cash In: {cash_in}, Cash Out: {cash_out}, Net Balance: {net_balance}")
+#         books_with_balance.append({
+#             'book': book,
+#             'net_balance': net_balance
+#         })
+
+#     # entries = CashEntry.objects.filter(book=book).order_by('-time')
+
+    
+#     return render(request, 'homepage.html', {
+#         'books_with_balance': books_with_balance
+#     })
 
 
 @login_required
@@ -101,7 +131,7 @@ def book_detail(request, book_id):
         return redirect('homepage')
     
     # Get all entries for the book
-    entries = CashEntry.objects.filter(book=book).order_by('-date')
+    entries = CashEntry.objects.filter(book=book).order_by('-time')
     
     # Apply filters from query parameters
     date_filter = request.GET.get('date')
