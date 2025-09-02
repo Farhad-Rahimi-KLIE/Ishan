@@ -11,6 +11,7 @@
                     {% for error in field.errors %}
                         <li>{{ field.label }}: {{ error }}</li>
                     {% endfor %}
+                {% endfor %}
                 {% for error in form.non_field_errors %}
                     <li>{{ error }}</li>
                 {% endfor %}
@@ -20,8 +21,8 @@
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">
-            <label for="id_select_user" class="form-label">User</label>
-            <input type="text" class="form-control" value="{{ user.username }}" disabled>
+            <label for="id_username" class="form-label">Username</label>
+            {{ form.username }}
         </div>
         <div class="mb-3">
             <label for="id_system_role" class="form-label">System Role</label>
@@ -34,7 +35,7 @@
         </div>
         {% endif %}
         <button type="submit" class="btn btn-primary">Update User</button>
-        <a href="{% url 'manage_users' book.id|default:'' %}" class="btn btn-secondary">Cancel</a>
+        <a href="{% url 'manage_my_users' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}

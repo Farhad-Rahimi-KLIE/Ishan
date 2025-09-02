@@ -7,7 +7,7 @@
     <form method="post">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Confirm Delete</button>
-        <a href="{% url 'manage_users' book.id|default:'' %}" class="btn btn-secondary">Cancel</a>
+        <a href="{% url 'manage_my_users'|default:'' %}" class="btn btn-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}

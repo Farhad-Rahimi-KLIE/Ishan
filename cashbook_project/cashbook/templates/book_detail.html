@@ -54,7 +54,6 @@
         <a href="{% url 'generate_report' book.id %}" class="btn btn-primary">Generate Report</a>
         {% comment %} <a href="{% url 'invite_member' book.id %}" class="btn btn-success">Invite Member</a> {% endcomment %}
         <a href="{% url 'create_user_for_book' book.id %}" class="btn btn-info">Create User</a>
-        <a href="{% url 'manage_users_for_book' book.id %}" class="btn btn-primary">Manage Users</a>
 
     </div>
     {% endif %}
@@ -202,7 +201,6 @@
     
     <a href="{% url 'homepage' %}" class="btn btn-secondary mt-3">Back to Home</a>
 </div>
-
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof jQuery === 'undefined') {
@@ -215,7 +213,7 @@ document.addEventListener('DOMContentLoaded', function() {
     jQuery('.entry-row').on('click', function() {
         try {
             var entry = JSON.parse(this.getAttribute('data-entry'));
-            console.log('Entry data:', entry); // Debug: Log entry data
+            console.log('Entry data:', entry);
             jQuery('#modal-date').text(entry.date || 'N/A');
             jQuery('#modal-time').text(entry.time || 'N/A');
             jQuery('#modal-type').text(entry.transaction_type || 'N/A');
@@ -231,7 +229,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 jQuery('#modal-image').hide();
             }
-            // Update edit/delete buttons
             var editUrl = "{% url 'edit_entry' book_id=book.id pk=0 %}".replace('0', entry.id);
             var deleteUrl = "{% url 'delete_entry' book_id=book.id pk=0 %}".replace('0', entry.id);
             jQuery('#edit-entry-btn').attr('href', editUrl);

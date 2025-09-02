@@ -22,9 +22,11 @@ class UserRegistrationForm(UserCreationForm):
             raise forms.ValidationError("A user with that username already exists.")
         return username
 
+
+
 class CreateUserForBookForm(forms.Form):
     select_user = forms.ModelChoiceField(
-        queryset=User.objects.none(),  # Will be set in __init__
+        queryset=User.objects.none(),
         required=False,
         label="Select Existing User",
         empty_label="Create New User",
@@ -32,9 +34,9 @@ class CreateUserForBookForm(forms.Form):
     )
     username = forms.CharField(
         max_length=150,
-        required=False,
+        required=True,
         widget=forms.TextInput(attrs={'class': 'form-control'}),
-        label="New Username"
+        label="Username"
     )
     password = forms.CharField(
         required=False,
@@ -43,6 +45,7 @@ class CreateUserForBookForm(forms.Form):
     )
     system_role = forms.ChoiceField(
         choices=[
+            ('admin', 'Admin'),
             ('manager', 'Manager'),
             ('partner', 'Partner'),
         ],
@@ -52,51 +55,86 @@ class CreateUserForBookForm(forms.Form):
     book_role = forms.ChoiceField(
         choices=BookMember.ROLE_CHOICES,
         widget=forms.Select(attrs={'class': 'form-control'}),
-        label="Book Role"
+        label="Book Role",
+        required=False
     )
 
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request', None)
         self.book = kwargs.pop('book', None)
-        self.instance = kwargs.pop('instance', None)
+        self.instance = kwargs.pop('instance', None)  # BookMember or User instance
         super().__init__(*args, **kwargs)
+        print(f"Form Init: instance={self.instance}, book={self.book}, user={self.request.user if self.request else None}")  # Debug
         if self.request and self.book:
-            # Only Admins, book creators, or book admins can add users
             if not (self.request.user.groups.filter(name='Admin').exists() or 
                     self.book.created_by == self.request.user or 
                     BookMember.objects.filter(book=self.book, user=self.request.user, role='admin').exists()):
-                raise ValidationError("Only Admins, book creators, or book admins can add users to a book.")
-            # Show only users created by the book's owner, excluding those already in the current book
+                raise ValidationError("Only Admins, book creators, or book admins can add/edit users.")
             self.fields['select_user'].queryset = User.objects.filter(
                 Q(book_memberships__book__created_by=self.book.created_by) |
-                Q(id=self.book.created_by.id)  # Include the book owner themselves if needed
-            ).distinct().exclude(
-                book_memberships__book=self.book
-            )
-            if self.instance:
-                # Disable select_user for editing
-                self.fields['select_user'].disabled = True
+                Q(id=self.book.created_by.id)
+            ).distinct().exclude(book_memberships__book=self.book)
+        if self.instance:
+            print(f"Edit Mode: Initializing for {'User' if isinstance(self.instance, User) else 'BookMember'}={self.instance}")  # Debug
+            self.fields['select_user'].disabled = True
+            self.fields['select_user'].required = False
+            self.fields['password'].required = False
+            self.fields['password'].widget = forms.HiddenInput()
+            if isinstance(self.instance, User):
+                self.fields['username'].initial = self.instance.username
+                self.fields['system_role'].initial = self.instance.groups.first().name.lower() if self.instance.groups.exists() else 'partner'
+                self.fields['book_role'].widget = forms.HiddenInput()
+                self.fields['book_role'].required = False
+            else:  # BookMember
+                self.fields['username'].initial = self.instance.user.username
+                self.fields['system_role'].initial = self.instance.user.groups.first().name.lower() if self.instance.user.groups.exists() else 'partner'
+                self.fields['book_role'].initial = self.instance.role
+        if not self.book:
+            self.fields['book_role'].widget = forms.HiddenInput()
+            self.fields['book_role'].required = False
 
     def clean(self):
         cleaned_data = super().clean()
         select_user = cleaned_data.get('select_user')
         username = cleaned_data.get('username')
         password = cleaned_data.get('password')
+        book_role = cleaned_data.get('book_role')
+        print(f"Clean: Edit Mode={bool(self.instance)}, Instance Type={'User' if isinstance(self.instance, User) else 'BookMember' if self.instance else 'None'}, Username={username}, Select User={select_user}, Password={password}, Book Role={book_role}")  # Debug
 
-        if not self.instance:  # Create mode
+        if self.instance:  # Edit mode (User or BookMember)
+            if select_user or password:
+                print("Validation Error: select_user or password provided in edit mode")  # Debug
+                raise ValidationError("Do not provide select_user or password when editing a user.")
+            if not username:
+                print("Validation Error: Username is missing")  # Debug
+                raise ValidationError("Username is required.")
+            if isinstance(self.instance, User):
+                if User.objects.filter(username=username).exclude(id=self.instance.id).exists():
+                    print(f"Validation Error: Username {username} already exists")  # Debug
+                    raise ValidationError("A user with that username already exists.")
+            else:  # BookMember
+                if User.objects.filter(username=username).exclude(id=self.instance.user.id).exists():
+                    print(f"Validation Error: Username {username} already exists")  # Debug
+                    raise ValidationError("A user with that username already exists.")
+                if self.book and not book_role:
+                    print("Validation Error: Book role is missing")  # Debug
+                    raise ValidationError("Book role is required when editing a user for a book.")
+        else:  # Create mode
             if not select_user and not (username and password):
-                raise ValidationError("Please either select an existing user or provide a new username and password.")
+                print("Validation Error: No select_user or username/password provided in create mode")  # Debug
+                raise ValidationError("Please either select an existing user or provide a username and password.")
             if select_user and (username or password):
+                print("Validation Error: Username or password provided with select_user in create mode")  # Debug
                 raise ValidationError("Do not provide username or password when selecting an existing user.")
             if username and User.objects.filter(username=username).exists():
+                print(f"Validation Error: Username {username} already exists in create mode")  # Debug
                 raise ValidationError("A user with that username already exists.")
-        else:  # Edit mode
-            if select_user:
-                raise ValidationError("Cannot change to another existing user during edit.")
-            if username and User.objects.filter(username=username).exclude(id=self.instance.user.id).exists():
-                raise ValidationError("A user with that username already exists.")
+            if self.book and not book_role:
+                print("Validation Error: Book role is missing in create mode")  # Debug
+                raise ValidationError("Book role is required when adding a user to a book.")
 
         return cleaned_data
+
 
 class BookForm(forms.ModelForm):
     class Meta:
