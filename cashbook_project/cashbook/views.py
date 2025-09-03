@@ -73,9 +73,9 @@ def homepage(request):
     # Calculate net balance for each book
     books_with_balance = []
     for book in books:
-        net_balance = CashEntry.objects.filter(book=book).aggregate(
-            net_balance=Sum('amount')
-        )['net_balance'] or 0.0
+        cash_in = CashEntry.objects.filter(book=book, transaction_type='IN').aggregate(total_in=Sum('amount'))['total_in'] or 0.0
+        cash_out = CashEntry.objects.filter(book=book, transaction_type='OUT').aggregate(total_out=Sum('amount'))['total_out'] or 0.0
+        net_balance = cash_in - cash_out
         books_with_balance.append({
             'book': book,
             'net_balance': net_balance
@@ -88,33 +88,6 @@ def homepage(request):
         'books_with_balance': books_with_balance,
         'user': request.user
     })
-
-
-# @login_required
-# def homepage(request):
-#     books = Book.objects.filter(
-#         Q(created_by=request.user) | Q(members__user=request.user)
-#     ).distinct()
-    
-#     books_with_balance = []
-#     for book in books:
-#         entries = CashEntry.objects.filter(book=book)
-#         # Partners can only view, so no filtering of entries for balance calculation
-#         cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
-#         cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
-#         net_balance = cash_in - cash_out
-#         logger.info(f"Book: {book.name}, User: {request.user.username}, Entries: {entries.count()}, Cash In: {cash_in}, Cash Out: {cash_out}, Net Balance: {net_balance}")
-#         books_with_balance.append({
-#             'book': book,
-#             'net_balance': net_balance
-#         })
-
-#     # entries = CashEntry.objects.filter(book=book).order_by('-time')
-
-    
-#     return render(request, 'homepage.html', {
-#         'books_with_balance': books_with_balance
-#     })
 
 
 @login_required
@@ -217,90 +190,6 @@ def book_detail(request, book_id):
                 f"BookMember Role: {BookMember.objects.filter(book=book, user=request.user).values('role').first() or 'None'}")
     
     return render(request, 'book_detail.html', context)
-
-
-# @login_required
-# def book_detail(request, book_id):
-#     book = get_object_or_404(Book, id=book_id)
-#     if not (request.user.groups.filter(name='Admin').exists() or 
-#             book.created_by == request.user or 
-#             BookMember.objects.filter(book=book, user=request.user).exists()):
-#         messages.error(request, 'You do not have permission to view this book.')
-#         return redirect('homepage')
-    
-#     entries = CashEntry.objects.filter(book=book).order_by('-date')
-#     if not (request.user.groups.filter(name='Admin').exists() or request.user.groups.filter(name='Manager').exists()):
-#         entries = entries.filter(
-#             models.Q(user=request.user) | models.Q(book__members__user=request.user, book__members__role='admin')
-#         )
-    
-#     date_filter = request.GET.get('date')
-#     category_filter = request.GET.get('category')
-#     type_filter = request.GET.get('type')
-#     search_query = request.GET.get('search', '')
-
-#     if date_filter:
-#         entries = entries.filter(date=date_filter)
-#     if category_filter:
-#         entries = entries.filter(category__id=category_filter)
-#     if type_filter:
-#         entries = entries.filter(transaction_type=type_filter)
-#     if search_query:
-#         entries = entries.filter(Q(remarks__icontains=search_query) | Q(amount__icontains=search_query))
-
-#     paginator = Paginator(entries, 10)
-#     page_number = request.GET.get('page')
-#     page_obj = paginator.get_page(page_number)
-
-#     cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
-#     cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
-#     net_balance = cash_in - cash_out
-
-#     entry_data = []
-#     running_balance = 0
-#     for entry in page_obj:
-#         if entry.transaction_type == 'IN':
-#             running_balance += entry.amount
-#         else:
-#             running_balance -= entry.amount
-#         serialized_entry = {
-#             'id': entry.id,
-#             'transaction_type': entry.get_transaction_type_display(),
-#             'amount': str(entry.amount),
-#             'date': entry.date.isoformat() if entry.date else '',
-#             'time': entry.time.strftime('%H:%M:%S') if entry.time else '',
-#             'remarks': entry.remarks or '',
-#             'category': entry.category.name if entry.category else '',
-#             'image': entry.image.url if entry.image else '',
-#             'optional_field': entry.optional_field or '',
-#             'user': entry.user.username if entry.user else '',
-#             'created_at': entry.created_at.isoformat() if entry.created_at else '',
-#             'book_id': entry.book.id,
-#             'running_balance': str(running_balance),
-#         }
-#         entry_data.append((entry, json.dumps(serialized_entry, ensure_ascii=False), running_balance))
-#     context = {
-#         'book': book,
-#         'entry_data': entry_data,
-#         'categories': Category.objects.filter(created_by=request.user) if not request.user.groups.filter(name='Admin').exists() else Category.objects.all(),
-#         'cash_in': cash_in,
-#         'cash_out': cash_out,
-#         'net_balance': net_balance,
-#         'search_query': search_query,
-#         'page_obj': page_obj,
-#         'is_book_admin': request.user.groups.filter(name='Admin').exists() or 
-#                         book.created_by == request.user or 
-#                         BookMember.objects.filter(book=book, user=request.user, role='admin').exists(),
-#         'can_add_entry': request.user.groups.filter(name='Admin').exists() or 
-#                         request.user.groups.filter(name='Manager').exists() or 
-#                         book.created_by == request.user or 
-#                         BookMember.objects.filter(book=book, user=request.user, role='admin').exists(),
-#         'can_generate_report': request.user.groups.filter(name='Admin').exists() or 
-#                               request.user.groups.filter(name='Manager').exists() or 
-#                               book.created_by == request.user or 
-#                               BookMember.objects.filter(book=book, user=request.user, role='admin').exists(),
-#     }
-#     return render(request, 'book_detail.html', context)
 
 
 @login_required
@@ -708,40 +597,6 @@ def delete_user(request, user_id, book_id=None):
         })
 
 
-
-# @login_required
-# def delete_user(request, user_id, book_id=None):
-#     if not request.user.groups.filter(name='Admin').exists():
-#         messages.error(request, 'Only Admins can delete users.')
-#         return redirect('manage_my_users', book_id=book_id if book_id else '')
-    
-#     user = get_object_or_404(User, id=user_id)
-#     if book_id:
-#         book = get_object_or_404(Book, id=book_id)
-#         if book.created_by == user:
-#             messages.error(request, 'Cannot delete the book creator.')
-#             return redirect('manage_my_users', book_id=book_id)
-#         if request.method == 'POST':
-#             BookMember.objects.filter(book=book, user=user).delete()
-#             messages.success(request, f'User {user.username} removed from book.')
-#             return redirect('manage_my_users', book_id=book_id)
-#         return render(request, 'delete_user.html', {
-#             'user': user,
-#             'book': book,
-#         })
-#     else:
-#         if request.method == 'POST':
-#             if Book.objects.filter(created_by=user).exists():
-#                 messages.error(request, 'Cannot delete user who created books.')
-#                 return redirect('manage_my_users')
-#             user.delete()
-#             messages.success(request, 'User deleted successfully.')
-#             return redirect('manage_my_users')
-#         return render(request, 'delete_user.html', {
-#             'user': user,
-#             'book': None,
-#         })
-
 @login_required
 def generate_report(request, book_id):
     book = get_object_or_404(Book, id=book_id)
@@ -894,98 +749,6 @@ def download_report(request, book_id):
     else:
         messages.error(request, 'Invalid report type selected.')
         return redirect('generate_report', book_id=book_id)
-
-
-# @login_required
-# def manage_users_for_book(request, book_id):
-#     book = get_object_or_404(Book, id=book_id)
-#     # Only Admins, book creators, or book admins can manage users
-#     is_book_admin = (
-#         request.user.groups.filter(name='Admin').exists() or
-#         book.created_by == request.user or
-#         BookMember.objects.filter(book=book, user=request.user, role='admin').exists()
-#     )
-#     if not is_book_admin:
-#         messages.error(request, 'You do not have permission to manage users for this book.')
-#         return redirect('manage_users_for_book', book_id=book.id)
-    
-#     # Prepare book members with edit/delete permissions
-#     book_members = []
-#     for member in BookMember.objects.filter(book=book):
-#         can_manage_member = (
-#             request.user.groups.filter(name='Admin').exists() or
-#             book.created_by == request.user or
-#             member.created_by == request.user or
-#             BookMember.objects.filter(book=book, user=request.user, role='admin').exists()
-#         )
-#         book_members.append({
-#             'member': member,
-#             'can_manage': can_manage_member
-#         })
-    
-#     context = {
-#         'book': book,
-#         'book_members': book_members,
-#         'is_book_admin': is_book_admin,
-#     }
-#     logger.info(f"Manage Users - User: {request.user.username}, Book ID: {book.id}, "
-#                 f"Is Admin: {request.user.groups.filter(name='Admin').exists()}, "
-#                 f"Is Book Creator: {book.created_by == request.user}, "
-#                 f"BookMember Role: {BookMember.objects.filter(book=book, user=request.user).values('role').first() or 'None'}, "
-#                 f"Is Book Admin: {is_book_admin}")
-#     return render(request, 'manage_users_for_book.html', context)
-
-
-
-# @login_required
-# def manage_all_users(request):
-#     if not request.user.groups.filter(name='Admin').exists():
-#         messages.error(request, 'Only Admins can manage all users.')
-#         return redirect('homepage')
-    
-#     # Get all users
-#     users = User.objects.all()
-#     user_data = []
-    
-#     for user in users:
-#         # Get system role
-#         system_role = user.groups.first().name if user.groups.exists() else 'No Role'
-#         # Get all books associated with the user
-#         book_memberships = BookMember.objects.filter(user=user).select_related('book')
-#         books = [
-#             {
-#                 'book': membership.book,
-#                 'role': membership.get_role_display(),
-#                 'can_manage': (
-#                     request.user.groups.filter(name='Admin').exists() or
-#                     membership.created_by == request.user or
-#                     membership.book.created_by == request.user or
-#                     BookMember.objects.filter(
-#                         book=membership.book, user=request.user, role='admin'
-#                     ).exists()
-#                 )
-#             }
-#             for membership in book_memberships
-#         ]
-        
-#         user_data.append({
-#             'user': user,
-#             'system_role': system_role,
-#             'books': books,
-#             'can_manage': (
-#                 request.user.groups.filter(name='Admin').exists() and
-#                 user != request.user  # Prevent self-deletion
-#             )
-#         })
-    
-#     logger.info(f"Manage All Users - User: {request.user.username}, Total Users: {len(users)}")
-    
-#     context = {
-#         'user_data': user_data,
-#         'is_admin': request.user.groups.filter(name='Admin').exists(),
-#     }
-#     return render(request, 'manage_all_users.html', context)
-
 
 
 @login_required

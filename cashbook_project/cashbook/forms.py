@@ -34,7 +34,7 @@ class CreateUserForBookForm(forms.Form):
     )
     username = forms.CharField(
         max_length=150,
-        required=True,
+        required=False,
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         label="Username"
     )
@@ -64,7 +64,6 @@ class CreateUserForBookForm(forms.Form):
         self.book = kwargs.pop('book', None)
         self.instance = kwargs.pop('instance', None)  # BookMember or User instance
         super().__init__(*args, **kwargs)
-        print(f"Form Init: instance={self.instance}, book={self.book}, user={self.request.user if self.request else None}")  # Debug
         if self.request and self.book:
             if not (self.request.user.groups.filter(name='Admin').exists() or 
                     self.book.created_by == self.request.user or 
@@ -75,7 +74,6 @@ class CreateUserForBookForm(forms.Form):
                 Q(id=self.book.created_by.id)
             ).distinct().exclude(book_memberships__book=self.book)
         if self.instance:
-            print(f"Edit Mode: Initializing for {'User' if isinstance(self.instance, User) else 'BookMember'}={self.instance}")  # Debug
             self.fields['select_user'].disabled = True
             self.fields['select_user'].required = False
             self.fields['password'].required = False
@@ -99,7 +97,6 @@ class CreateUserForBookForm(forms.Form):
         username = cleaned_data.get('username')
         password = cleaned_data.get('password')
         book_role = cleaned_data.get('book_role')
-        print(f"Clean: Edit Mode={bool(self.instance)}, Instance Type={'User' if isinstance(self.instance, User) else 'BookMember' if self.instance else 'None'}, Username={username}, Select User={select_user}, Password={password}, Book Role={book_role}")  # Debug
 
         if self.instance:  # Edit mode (User or BookMember)
             if select_user or password:
