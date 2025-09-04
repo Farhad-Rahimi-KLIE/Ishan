@@ -15,12 +15,13 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
 import openpyxl
-from datetime import datetime
 from django.db import models
 import secrets
 import string
 import logging
 from django.db import transaction
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta  # Add this import for month calculations
 
 logger = logging.getLogger(__name__)
 
@@ -107,13 +108,23 @@ def book_detail(request, book_id):
     entries = CashEntry.objects.filter(book=book).order_by('-time')
     
     # Apply filters from query parameters
-    date_filter = request.GET.get('date')
+    date_filter = request.GET.get('date_filter')
     category_filter = request.GET.get('category')
     type_filter = request.GET.get('type')
     search_query = request.GET.get('search', '')
 
     if date_filter:
-        entries = entries.filter(date=date_filter)
+        today = datetime.now().date()
+        if date_filter == 'today':
+            entries = entries.filter(date=today)
+        elif date_filter == 'this_month':
+            start_of_month = today.replace(day=1)
+            entries = entries.filter(date__gte=start_of_month, date__lte=today)
+        elif date_filter == 'last_month':
+            last_month = today - relativedelta(months=1)
+            start_of_last_month = last_month.replace(day=1)
+            end_of_last_month = start_of_last_month + relativedelta(months=1, days=-1)
+            entries = entries.filter(date__gte=start_of_last_month, date__lte=end_of_last_month)
     if category_filter:
         entries = entries.filter(category__id=category_filter)
     if type_filter:
@@ -154,11 +165,14 @@ def book_detail(request, book_id):
             'running_balance': str(running_balance),
         }
         entry_data.append((entry, json.dumps(serialized_entry, ensure_ascii=False), running_balance))
+
+        categories = Category.objects.filter(book=book)
     
     context = {
         'book': book,
         'entry_data': entry_data,
-        'categories': Category.objects.filter(created_by=request.user) if not request.user.groups.filter(name='Admin').exists() else Category.objects.all(),
+        'categories' : categories,
+        # 'categories': Category.objects.filter(created_by=request.user) if not request.user.groups.filter(name='Admin').exists() else Category.objects.all(),
         'cash_in': cash_in,
         'cash_out': cash_out,
         'net_balance': net_balance,
@@ -182,6 +196,7 @@ def book_detail(request, book_id):
             book.created_by == request.user or
             BookMember.objects.filter(book=book, user=request.user, role='admin').exists()
         ),
+        'date_filter': date_filter,  # Pass date_filter to template for display
     }
     
     logger.info(f"Book Detail - User: {request.user.username}, Book ID: {book.id}, "

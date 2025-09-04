@@ -69,15 +69,22 @@
         <div class="row">
             <div class="col-md-3">
                 <label for="date" class="form-label">Filter by Date</label>
-                <input type="date" name="date" id="date" class="form-control" value="{{ request.GET.date }}">
+            <select name="date_filter" id="date_filter" class="form-control">
+                <option value="" {% if not date_filter %}selected{% endif %}>All Dates</option>
+                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                <option value="this_month" {% if date_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                <option value="last_month" {% if date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
+            </select>
             </div>
             <div class="col-md-3">
                 <label for="category" class="form-label">Filter by Category</label>
-                <select name="category" id="category" class="form-control">
-                    <option value="">All Categories</option>
-                    {% for cat in categories %}
-                        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
-                    {% endfor %}
+                 <select name="category" id="category" class="form-control">
+                    <option value="" {% if not category_filter %}selected{% endif %}>All Categories</option>
+                      {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                      {{ category.name }}
+                    </option>
+                      {% endfor %}
                 </select>
             </div>
             <div class="col-md-3">
