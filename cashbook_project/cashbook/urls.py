@@ -21,12 +21,4 @@ urlpatterns = [
     path('user/edit/<int:user_id>/', views.edit_user, name='edit_user'),
     path('user/delete/<int:user_id>/', views.delete_user, name='delete_user'),
     ]
-
-
-    # path('manage_users/book/<int:book_id>/', views.manage_users, name='manage_users'),
-    # path('user/edit/<int:user_id>/', views.edit_user, name='edit_user'),
-    # path('user/edit/<int:user_id>/book/<int:book_id>/', views.edit_user, name='edit_user'),
-    # path('user/delete/<int:user_id>/', views.delete_user, name='delete_user'),
-    # path('user/delete/<int:user_id>/book/<int:book_id>/', views.delete_user, name='delete_user'),
-    # path('book/<int:book_id>/generate_report/', views.generate_report, name='generate_report'),
-    # path('book/<int:book_id>/download_report/', views.download_report, name='download_report'),
+# Total we have a 18 URLs for our Routes

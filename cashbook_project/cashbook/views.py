@@ -482,7 +482,6 @@ def edit_user(request, user_id, book_id=None):
     book = get_object_or_404(Book, id=book_id) if book_id else None
     book_member = BookMember.objects.filter(book=book, user=user).first() if book else None
     instance = book_member if book else user  # Use User for system-wide edits
-    print(f"Edit User: user_id={user_id}, book_id={book_id}, book_member={book_member}, instance={instance}, current_user={request.user.username}")  # Debug
 
     # Permission check
     is_authorized = (
@@ -504,7 +503,6 @@ def edit_user(request, user_id, book_id=None):
             book=book,
             instance=instance
         )
-        print(f"POST Data: {request.POST}")  # Debug
         if form.is_valid():
             try:
                 with transaction.atomic():
@@ -531,7 +529,6 @@ def edit_user(request, user_id, book_id=None):
                     logger.info(f"User updated: Old Username={old_username}, New Username={user.username}, Old System Role={old_group}, New System Role={system_role}, Old Book Role={old_book_role}, New Book Role={form.cleaned_data['book_role'] if book else 'N/A'}, Book ID={book_id or 'N/A'}")
                     messages.success(request, f'User {user.username} updated successfully.')
                     if request.user == user:  # Refresh session for current user
-                        print(f"Refreshing session for User: {user.username}")  # Debug
                         user = authenticate(request, username=user.username, password=user.password)
                         if user:
                             login(request, user)
