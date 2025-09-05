@@ -32,7 +32,7 @@ def register(request):
             user = form.save()
             admin_group, _ = Group.objects.get_or_create(name='Admin')
             user.groups.add(admin_group)
-            UserProfile.objects.create(user=user, created_by=request.user)  # Track creator
+            # UserProfile.objects.create(user=user, created_by=request.user)  # Track creator
             messages.success(request, 'Registration successful. Please log in.')
             return redirect('login')
         else:
