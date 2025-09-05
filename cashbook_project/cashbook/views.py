@@ -74,8 +74,8 @@ def homepage(request):
     # Calculate net balance for each book
     books_with_balance = []
     for book in books:
-        cash_in = CashEntry.objects.filter(book=book, transaction_type='IN').aggregate(total_in=Sum('amount'))['total_in'] or 0.0
-        cash_out = CashEntry.objects.filter(book=book, transaction_type='OUT').aggregate(total_out=Sum('amount'))['total_out'] or 0.0
+        cash_in = CashEntry.objects.filter(book=book, transaction_type='IN').aggregate(total_in=Sum('amount'))['total_in'] or 0
+        cash_out = CashEntry.objects.filter(book=book, transaction_type='OUT').aggregate(total_out=Sum('amount'))['total_out'] or 0
         net_balance = cash_in - cash_out
         books_with_balance.append({
             'book': book,
@@ -90,6 +90,8 @@ def homepage(request):
         'user': request.user
     })
 
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta  # For month calculations
 
 @login_required
 def book_detail(request, book_id):
@@ -104,6 +106,14 @@ def book_detail(request, book_id):
         logger.error(f"Permission denied for User: {request.user.username}, Book ID: {book.id}")
         return redirect('homepage')
     
+    # Define categories early to avoid undefined variable error
+    try:
+        categories = Category.objects.filter(book=book)
+        logger.info(f"Categories for Book ID {book.id}: {list(categories.values('id', 'name'))}")
+    except Exception as e:
+        logger.error(f"Error fetching categories for Book ID {book.id}: {str(e)}")
+        categories = Category.objects.none()  # Fallback to empty queryset to avoid errors
+
     # Get all entries for the book
     entries = CashEntry.objects.filter(book=book).order_by('-time')
     
@@ -113,6 +123,7 @@ def book_detail(request, book_id):
     type_filter = request.GET.get('type')
     search_query = request.GET.get('search', '')
 
+    # Date filter logic for Today, This Month, Last Month
     if date_filter:
         today = datetime.now().date()
         if date_filter == 'today':
@@ -125,10 +136,16 @@ def book_detail(request, book_id):
             start_of_last_month = last_month.replace(day=1)
             end_of_last_month = start_of_last_month + relativedelta(months=1, days=-1)
             entries = entries.filter(date__gte=start_of_last_month, date__lte=end_of_last_month)
+
+    # Category filter
     if category_filter:
         entries = entries.filter(category__id=category_filter)
+    
+    # Transaction type filter
     if type_filter:
         entries = entries.filter(transaction_type=type_filter)
+    
+    # Search query filter
     if search_query:
         entries = entries.filter(Q(remarks__icontains=search_query) | Q(amount__icontains=search_query))
 
@@ -166,19 +183,16 @@ def book_detail(request, book_id):
         }
         entry_data.append((entry, json.dumps(serialized_entry, ensure_ascii=False), running_balance))
 
-        categories = Category.objects.filter(book=book)
-    
     context = {
         'book': book,
         'entry_data': entry_data,
-        'categories' : categories,
-        # 'categories': Category.objects.filter(created_by=request.user) if not request.user.groups.filter(name='Admin').exists() else Category.objects.all(),
+        'categories': categories,  # Use the defined categories variable
         'cash_in': cash_in,
         'cash_out': cash_out,
         'net_balance': net_balance,
         'search_query': search_query,
         'page_obj': page_obj,
-        'current_user': request.user,  # Add current user to context for modal permission check
+        'current_user': request.user,
         'is_book_admin': (
             request.user.groups.filter(name='Admin').exists() or
             book.created_by == request.user or
@@ -196,15 +210,132 @@ def book_detail(request, book_id):
             book.created_by == request.user or
             BookMember.objects.filter(book=book, user=request.user, role='admin').exists()
         ),
-        'date_filter': date_filter,  # Pass date_filter to template for display
+        'date_filter': date_filter,  # Pass date_filter to template
     }
     
     logger.info(f"Book Detail - User: {request.user.username}, Book ID: {book.id}, "
                 f"Entries Count: {entries.count()}, Cash In: {cash_in}, Cash Out: {cash_out}, Net Balance: {net_balance}, "
+                f"Categories Count: {categories.count()}, "
                 f"Is Book Admin: {context['is_book_admin']}, Can Add Entry: {context['can_add_entry']}, "
                 f"BookMember Role: {BookMember.objects.filter(book=book, user=request.user).values('role').first() or 'None'}")
     
     return render(request, 'book_detail.html', context)
+
+
+# @login_required
+# def book_detail(request, book_id):
+#     book = get_object_or_404(Book, id=book_id)
+#     # Check if user has permission to view the book
+#     if not (
+#         request.user.groups.filter(name='Admin').exists() or
+#         book.created_by == request.user or
+#         BookMember.objects.filter(book=book, user=request.user).exists()
+#     ):
+#         messages.error(request, 'You do not have permission to view this book.')
+#         logger.error(f"Permission denied for User: {request.user.username}, Book ID: {book.id}")
+#         return redirect('homepage')
+    
+#     # Get all entries for the book
+#     entries = CashEntry.objects.filter(book=book).order_by('-time')
+    
+#     # Apply filters from query parameters
+#     date_filter = request.GET.get('date_filter')
+#     category_filter = request.GET.get('category')
+#     type_filter = request.GET.get('type')
+#     search_query = request.GET.get('search', '')
+
+#     if date_filter:
+#         today = datetime.now().date()
+#         if date_filter == 'today':
+#             entries = entries.filter(date=today)
+#         elif date_filter == 'this_month':
+#             start_of_month = today.replace(day=1)
+#             entries = entries.filter(date__gte=start_of_month, date__lte=today)
+#         elif date_filter == 'last_month':
+#             last_month = today - relativedelta(months=1)
+#             start_of_last_month = last_month.replace(day=1)
+#             end_of_last_month = start_of_last_month + relativedelta(months=1, days=-1)
+#             entries = entries.filter(date__gte=start_of_last_month, date__lte=end_of_last_month)
+#     if category_filter:
+#         entries = entries.filter(category__id=category_filter)
+#     if type_filter:
+#         entries = entries.filter(transaction_type=type_filter)
+#     if search_query:
+#         entries = entries.filter(Q(remarks__icontains=search_query) | Q(amount__icontains=search_query))
+
+#     # Calculate cash in, cash out, and net balance
+#     cash_in = entries.filter(transaction_type='IN').aggregate(Sum('amount'))['amount__sum'] or 0
+#     cash_out = entries.filter(transaction_type='OUT').aggregate(Sum('amount'))['amount__sum'] or 0
+#     net_balance = cash_in - cash_out
+
+#     # Paginate entries for all users
+#     paginator = Paginator(entries, 10)
+#     page_number = request.GET.get('page')
+#     page_obj = paginator.get_page(page_number)
+
+#     entry_data = []
+#     running_balance = 0
+#     for entry in page_obj:
+#         if entry.transaction_type == 'IN':
+#             running_balance += entry.amount
+#         else:
+#             running_balance -= entry.amount
+#         serialized_entry = {
+#             'id': entry.id,
+#             'transaction_type': entry.get_transaction_type_display(),
+#             'amount': str(entry.amount),
+#             'date': entry.date.isoformat() if entry.date else '',
+#             'time': entry.time.strftime('%H:%M:%S') if entry.time else '',
+#             'remarks': entry.remarks or '',
+#             'category': entry.category.name if entry.category else '',
+#             'image': entry.image.url if entry.image else '',
+#             'optional_field': entry.optional_field or '',
+#             'user': entry.user.username if entry.user else '',
+#             'created_at': entry.created_at.isoformat() if entry.created_at else '',
+#             'book_id': entry.book.id,
+#             'running_balance': str(running_balance),
+#         }
+#         entry_data.append((entry, json.dumps(serialized_entry, ensure_ascii=False), running_balance))
+
+#         categories = Category.objects.filter(book=book)
+    
+#     context = {
+#         'book': book,
+#         'entry_data': entry_data,
+#         'categories' : categories,
+#         # 'categories': Category.objects.filter(created_by=request.user) if not request.user.groups.filter(name='Admin').exists() else Category.objects.all(),
+#         'cash_in': cash_in,
+#         'cash_out': cash_out,
+#         'net_balance': net_balance,
+#         'search_query': search_query,
+#         'page_obj': page_obj,
+#         'current_user': request.user,  # Add current user to context for modal permission check
+#         'is_book_admin': (
+#             request.user.groups.filter(name='Admin').exists() or
+#             book.created_by == request.user or
+#             BookMember.objects.filter(book=book, user=request.user, role='admin').exists()
+#         ),
+#         'can_add_entry': (
+#             request.user.groups.filter(name='Admin').exists() or
+#             request.user.groups.filter(name='Manager').exists() or
+#             book.created_by == request.user or
+#             BookMember.objects.filter(book=book, user=request.user, role__in=['admin', 'manager']).exists()
+#         ),
+#         'can_generate_report': (
+#             request.user.groups.filter(name='Admin').exists() or
+#             request.user.groups.filter(name='Manager').exists() or
+#             book.created_by == request.user or
+#             BookMember.objects.filter(book=book, user=request.user, role='admin').exists()
+#         ),
+#         'date_filter': date_filter,  # Pass date_filter to template for display
+#     }
+    
+#     logger.info(f"Book Detail - User: {request.user.username}, Book ID: {book.id}, "
+#                 f"Entries Count: {entries.count()}, Cash In: {cash_in}, Cash Out: {cash_out}, Net Balance: {net_balance}, "
+#                 f"Is Book Admin: {context['is_book_admin']}, Can Add Entry: {context['can_add_entry']}, "
+#                 f"BookMember Role: {BookMember.objects.filter(book=book, user=request.user).values('role').first() or 'None'}")
+    
+#     return render(request, 'book_detail.html', context)
 
 
 @login_required
