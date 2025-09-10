@@ -22,6 +22,7 @@ import logging
 from django.db import transaction
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta  # Add this import for month calculations
+from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
@@ -122,12 +123,18 @@ def book_detail(request, book_id):
     category_filter = request.GET.get('category')
     type_filter = request.GET.get('type')
     search_query = request.GET.get('search', '')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
 
     # Date filter logic for Today, This Month, Last Month
+    # Date filter logic
     if date_filter:
         today = datetime.now().date()
         if date_filter == 'today':
             entries = entries.filter(date=today)
+        elif date_filter == 'yesterday':
+            yesterday = today - timedelta(days=1)
+            entries = entries.filter(date=yesterday)
         elif date_filter == 'this_month':
             start_of_month = today.replace(day=1)
             entries = entries.filter(date__gte=start_of_month, date__lte=today)
@@ -136,6 +143,18 @@ def book_detail(request, book_id):
             start_of_last_month = last_month.replace(day=1)
             end_of_last_month = start_of_last_month + relativedelta(months=1, days=-1)
             entries = entries.filter(date__gte=start_of_last_month, date__lte=end_of_last_month)
+        elif date_filter == 'custom' and start_date and end_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                if start_date > end_date:
+                    messages.error(request, 'Start date cannot be after end date.')
+                    logger.error(f"Invalid date range: Start date {start_date} is after end date {end_date}")
+                else:
+                    entries = entries.filter(date__gte=start_date, date__lte=end_date)
+            except ValueError:
+                messages.error(request, 'Invalid date format. Please use YYYY-MM-DD.')
+                logger.error(f"Invalid date format for start_date: {start_date}, end_date: {end_date}")
 
     # Category filter
     if category_filter:
@@ -216,6 +235,7 @@ def book_detail(request, book_id):
     logger.info(f"Book Detail - User: {request.user.username}, Book ID: {book.id}, "
                 f"Entries Count: {entries.count()}, Cash In: {cash_in}, Cash Out: {cash_out}, Net Balance: {net_balance}, "
                 f"Categories Count: {categories.count()}, "
+                f"Date Filter: {date_filter}, Start Date: {start_date or 'N/A'}, End Date: {end_date or 'N/A'}, "
                 f"Is Book Admin: {context['is_book_admin']}, Can Add Entry: {context['can_add_entry']}, "
                 f"BookMember Role: {BookMember.objects.filter(book=book, user=request.user).values('role').first() or 'None'}")
     
@@ -471,6 +491,8 @@ def add_entry(request, book_id, transaction_type):
                 entry.book = book
                 entry.user = request.user
                 entry.transaction_type = transaction_type
+                entry.date = datetime.now().date()
+                entry.time = datetime.now().time()
                 entry.save()
                 messages.success(request, f'{"Cash In" if transaction_type == "IN" else "Cash Out"} added successfully.')
                 if 'save_and_add' in request.POST:
@@ -487,6 +509,8 @@ def add_entry(request, book_id, transaction_type):
         'category_form': category_form,
         'book': book,
         'transaction_type': transaction_type,
+        'current_date': timezone.now().date(),  # Add for display
+        'current_time': timezone.now().time(),  # Add for display
     })
 
 

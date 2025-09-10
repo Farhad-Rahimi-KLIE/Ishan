@@ -2,9 +2,8 @@
 {% load static %}
 
 {% block content %}
-
 <style>
-    /* Inline custom styles for gradients since Bootstrap doesn't provide them */
+    /* Inline custom styles for gradients */
     .bg-cash-in {
         background: linear-gradient(135deg, #28a745, #34c759);
         color: white;
@@ -22,10 +21,10 @@
         color: white;
     }
     .table .cash-in {
-        color: #28a745 !important; /* Green for Cash In and positive values in table */
+        color: #28a745 !important; /* Green for Cash In */
     }
     .table .cash-out {
-        color: #dc3545 !important; /* Red for Cash Out and negative values in table */
+        color: #dc3545 !important; /* Red for Cash Out */
     }
     .cash-in {
         color: #28a745; /* Green for inline <p> */
@@ -33,147 +32,207 @@
     .cash-out {
         color: #dc3545; /* Red for inline <p> */
     }
+    /* Horizontal filter scroll */
+    .filter-container {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        padding-bottom: 10px;
+        scrollbar-width: thin; /* Firefox */
+    }
+    .filter-container::-webkit-scrollbar {
+        height: 8px; /* Chrome/Safari */
+    }
+    .filter-container::-webkit-scrollbar-thumb {
+        background: #6c757d;
+        border-radius: 4px;
+    }
+    .filter-item {
+        flex: 0 0 auto;
+        margin-right: 10px;
+        min-width: 160px; /* Reduced for mobile */
+    }
+    /* Bottom fixed buttons */
+    .bottom-buttons {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        display: flex;
+        justify-content: space-between;
+        z-index: 1000;
+    }
+    .bottom-buttons .btn {
+        padding: 8px 16px; /* Smaller padding for mobile */
+        font-size: 0.9rem; /* Smaller font */
+    }
+    /* Table container */
+    .table-container {
+        margin-bottom: 60px; /* Space for fixed buttons */
+        overflow-x: auto; /* Horizontal scroll for table on mobile */
+    }
+    /* Responsive table */
+    #cashbook-table {
+        font-size: 0.85rem; /* Smaller font for mobile */
+    }
+    #cashbook-table th, #cashbook-table td {
+        padding: 8px; /* Reduced padding */
+        white-space: nowrap; /* Prevent text wrapping */
+    }
+    /* Mobile-specific adjustments */
+    @media (max-width: 576px) {
+        h2 {
+            font-size: 1.5rem; /* Smaller heading */
+        }
+        .mb-4 {
+            font-size: 0.9rem; /* Smaller summary text */
+        }
+        .filter-item {
+            min-width: 120px; /* Even smaller for mobile */
+        }
+        .filter-item .form-label {
+            font-size: 0.8rem;
+        }
+        .filter-item .form-select,
+        .filter-item .form-control {
+            font-size: 0.8rem;
+            padding: 4px;
+        }
+        .bottom-buttons .btn {
+            padding: 6px 12px;
+            font-size: 0.8rem;
+        }
+        .table-container {
+            margin-bottom: 50px;
+        }
+    }
 </style>
 
 <div class="container mt-2">
     <h2>{{ book.name }}</h2>
-
-    {% comment %} <p>Cash In: <span class="cash-in">{{ cash_in }}</span> | Cash Out: <span class="cash-out">{{ cash_out }}</span> | Net Balance: <span class="{% if net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">{{ net_balance }}</span></p> {% endcomment %}
-   
     
-      <p class="mb-4">
+    <p class="mb-4">
         Cash In: <span class="cash-in">{{ cash_in|floatformat:2 }}</span> |
         Cash Out: <span class="cash-out">{{ cash_out|floatformat:2 }}</span> |
         Net Balance: <span class="{% if net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">{{ net_balance|floatformat:2 }}</span>
     </p>
 
-
-    <!-- Action Buttons -->
-    {% if is_book_admin %}
-    <div class="mb-3 mt-2">
-        <a href="{% url 'generate_report' book.id %}" class="btn btn-primary">Generate Report</a>
-        {% comment %} <a href="{% url 'invite_member' book.id %}" class="btn btn-success">Invite Member</a> {% endcomment %}
-        <a href="{% url 'create_user_for_book' book.id %}" class="btn btn-info">Create User</a>
-
-    </div>
-    {% endif %}
-    {% if can_add_entry %}
     <div class="mb-3">
-        <a href="{% url 'add_entry' book_id=book.id transaction_type='IN' %}" class="btn btn-success">Cash In</a>
-        <a href="{% url 'add_entry' book_id=book.id transaction_type='OUT' %}" class="btn btn-danger">Cash Out</a>
+        {% if can_generate_report %}
+            <a href="{% url 'generate_report' book.id %}" class="btn btn-primary btn-sm">Generate Report</a>
+        {% endif %}
+        {% if is_book_admin %}
+            <a href="{% url 'create_user_for_book' book.id %}" class="btn btn-info btn-sm">Create User</a>
+        {% endif %}
     </div>
-    {% endif %}
-    
-    <!-- Filter Form -->
+
+    <!-- Filter Form with Horizontal Scroll -->
     <form method="get" class="mb-3">
-        <div class="row">
-            <div class="col-md-3">
-                <label for="date" class="form-label">Filter by Date</label>
-            <select name="date_filter" id="date_filter" class="form-control">
-                <option value="" {% if not date_filter %}selected{% endif %}>All Dates</option>
-                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
-                <option value="this_month" {% if date_filter == 'this_month' %}selected{% endif %}>This Month</option>
-                <option value="last_month" {% if date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
-            </select>
+        <div class="filter-container">
+            <div class="filter-item">
+                <!-- <label for="date_filter" class="form-label">Filter by Date:</label> -->
+                <select name="date_filter" id="date_filter" class="form-select" onchange="toggleDateRangeInputs(); this.form.submit();">
+                    <option value="" {% if not date_filter %}selected{% endif %}>All Time</option>
+                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="this_month" {% if date_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                    <option value="last_month" {% if date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
+                    <option value="custom" {% if date_filter == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+                <div id="date-range-inputs" style="display: {% if date_filter == 'custom' %}block{% else %}none{% endif %};">
+                    <label for="start_date" class="form-label">Start Date:</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ start_date|default_if_none:'' }}" class="form-control" onchange="this.form.submit();">
+                    <label for="end_date" class="form-label">End Date:</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ end_date|default_if_none:'' }}" class="form-control" onchange="this.form.submit();">
+                </div>
             </div>
-            <div class="col-md-3">
-                <label for="category" class="form-label">Filter by Category</label>
-                 <select name="category" id="category" class="form-control">
+            <div class="filter-item">
+                <!-- <label for="category" class="form-label">Filter by Category</label> -->
+                <select name="category" id="category" class="form-select" onchange="this.form.submit();">
                     <option value="" {% if not category_filter %}selected{% endif %}>All Categories</option>
-                      {% for category in categories %}
-                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
-                      {{ category.name }}
-                    </option>
-                      {% endfor %}
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
-                <label for="type" class="form-label">Filter by Type</label>
-                <select name="type" id="type" class="form-control">
+            <div class="filter-item">
+                <!-- <label for="type" class="form-label">Filter by Type</label> -->
+                <select name="type" id="type" class="form-select" onchange="this.form.submit();">
                     <option value="">All Types</option>
                     <option value="IN" {% if request.GET.type == "IN" %}selected{% endif %}>Cash In</option>
                     <option value="OUT" {% if request.GET.type == "OUT" %}selected{% endif %}>Cash Out</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <label for="search" class="form-label">Search</label>
-                <input type="text" name="search" id="search" class="form-control" value="{{ search_query }}" placeholder="Search remarks or amount">
-            </div>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">Apply Filters</button>
-        <a href="{% url 'book_detail' book.id %}" class="btn btn-secondary mt-3">Clear Filters</a>
     </form>
-{% comment %} 
-     {% if is_book_admin %}
-    <a href="{% url 'create_user_for_book' book.id %}" class="btn btn-primary">Add User to Book</a>
-    {% endif %} {% endcomment %}
-    
-    
+
     <!-- Entries Table -->
     {% if page_obj %}
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Category</th>
-                    <th>Remarks</th>
-                    <th>Running Balance</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for entry, serialized_entry, running_balance in entry_data %}
-                    <tr class="entry-row" data-entry='{{ serialized_entry|safe }}'>
-                        <td>{{ entry.date }}</td>
-                        <td class="{% if entry.transaction_type == 'IN' %} cash-in {% else %} cash-out {% endif %}">
-                            {{ entry.get_transaction_type_display }}
-                        </td>
-                        <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
-                            {{ entry.amount|floatformat:2 }}
-                        </td>
-                        <td>{{ entry.category.name|default:"N/A" }}</td>
-                        <td>{{ entry.remarks|default:"N/A" }}</td>
-                        <td >
-                            {{ running_balance|floatformat:2 }}
-                        </td>
+        <div class="table-container">
+            <table class="table table-striped table-hover table-bordered" id="cashbook-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col" data-sort="date">Date</th>
+                        <th scope="col" data-sort="type">Type</th>
+                        <th scope="col" data-sort="amount">Amount</th>
+                        <th scope="col" data-sort="category">Category</th>
+                        <th scope="col" data-sort="remarks">Remarks</th>
+                        <th scope="col" data-sort="balance">Running Balance</th>
                     </tr>
-                {% endfor %}
-                {% comment %} {% for entry, serialized_entry, running_balance in entry_data %}
-                    <tr class="entry-row" data-entry='{{ serialized_entry|safe }}'>
-                        <td>{{ entry.date }}</td>
-                        <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">{{ entry.get_transaction_type_display }}</td>
-                        <td>{{ entry.amount }}</td>
-                        <td>{{ entry.category.name|default:"N/A" }}</td>
-                        <td>{{ entry.remarks|default:"N/A" }}</td>
-                        <td class="{% if running_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">{{ running_balance }}</td>
-                    </tr>
-                {% endfor %} {% endcomment %}
-            </tbody>
-        </table>
-        <!-- Pagination -->
-        <div class="pagination">
-            <span class="step-links">
-                {% if page_obj.has_previous %}
-                    <a href="?page=1{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">« first</a>
-                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">previous</a>
-                {% endif %}
-                <span class="current">
-                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                </thead>
+                <tbody>
+                    {% for entry, serialized_entry, running_balance in entry_data %}
+                        <tr class="entry-row" data-entry='{{ serialized_entry|safe }}'>
+                            <td>{{ entry.date }}<br>{{ entry.time }}</td>
+                            <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
+                                {{ entry.get_transaction_type_display }}
+                            </td>
+                            <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
+                                {{ entry.amount|floatformat:2 }}
+                            </td>
+                            <td>{{ entry.category.name|default:"N/A" }}</td>
+                            <td>{{ entry.remarks|default:"N/A" }}</td>
+                            <td class="{% if running_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
+                                {{ running_balance|floatformat:2 }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <!-- Pagination -->
+            <div class="pagination mt-3">
+                <span class="step-links">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-primary btn-sm">« First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-primary btn-sm">Previous</a>
+                    {% endif %}
+                    <span class="current">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+                    </span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-primary btn-sm">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.date_filter %}&date_filter={{ request.GET.date_filter }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-primary btn-sm">Last »</a>
+                    {% endif %}
                 </span>
-                {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">next</a>
-                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.date %}&date={{ request.GET.date }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">last »</a>
-                {% endif %}
-            </span>
+            </div>
         </div>
     {% else %}
         <p>No entries found for this book.</p>
     {% endif %}
-    
+
+    <!-- Cash In/Out Buttons at Bottom -->
+    {% if can_add_entry %}
+        <div class="bottom-buttons">
+            <a href="{% url 'add_entry' book_id=book.id transaction_type='IN' %}" class="btn bg-cash-in">Cash In</a>
+            <a href="{% url 'add_entry' book_id=book.id transaction_type='OUT' %}" class="btn bg-cash-out">Cash Out</a>
+        </div>
+    {% endif %}
+
     <!-- Entry Details Modal -->
     <div class="modal fade" id="entryModal" tabindex="-1" aria-labelledby="entryModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="entryModalLabel">Entry Details</h5>
@@ -197,17 +256,18 @@
                 </div>
                 <div class="modal-footer">
                     {% if is_book_admin or entry.user == user or can_add_entry %}
-                        <a id="edit-entry-btn" href="#" class="btn btn-warning">Edit</a>
-                        <a id="delete-entry-btn" href="#" class="btn btn-danger">Delete</a>
+                        <a id="edit-entry-btn" href="#" class="btn btn-warning btn-sm">Edit</a>
+                        <a id="delete-entry-btn" href="#" class="btn btn-danger btn-sm">Delete</a>
                     {% endif %}
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
-    
-    <a href="{% url 'homepage' %}" class="btn btn-secondary mt-3">Back to Home</a>
+
+    <a href="{% url 'homepage' %}" class="btn btn-secondary btn-sm mt-3">Back to Home</a>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     if (typeof jQuery === 'undefined') {
@@ -217,6 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     console.log('jQuery version:', jQuery.fn.jquery);
 
+    // Modal click handler
     jQuery('.entry-row').on('click', function() {
         try {
             var entry = JSON.parse(this.getAttribute('data-entry'));
@@ -246,6 +307,48 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Failed to load entry details. Check the console for errors.');
         }
     });
+
+    // Toggle date range inputs
+    function toggleDateRangeInputs() {
+        const dateFilter = document.getElementById('date_filter').value;
+        const dateRangeInputs = document.getElementById('date-range-inputs');
+        if (dateFilter === 'custom') {
+            dateRangeInputs.style.display = 'block';
+        } else {
+            dateRangeInputs.style.display = 'none';
+        }
+    }
+    toggleDateRangeInputs();
+
+    // Table sorting
+    const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+    const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
+        v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 :
+        v1.toString().localeCompare(v2)
+    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+    document.querySelectorAll('#cashbook-table th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const tbody = th.closest('table').querySelector('tbody');
+            const idx = Array.from(th.parentNode.children).indexOf(th);
+            const asc = !(th.dataset.asc === 'true');
+            th.dataset.asc = asc;
+            Array.from(tbody.querySelectorAll('tr'))
+                .sort(comparer(idx, asc))
+                .forEach(tr => tbody.appendChild(tr));
+        });
+    });
+
+    // Search functionality
+    jQuery('#search').on('input', function() {
+        const searchValue = this.value.toLowerCase();
+        jQuery('#cashbook-table tbody tr').each(function() {
+            const text = this.textContent.toLowerCase();
+            jQuery(this).toggle(text.includes(searchValue));
+        });
+    });
 });
 </script>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 {% endblock %}

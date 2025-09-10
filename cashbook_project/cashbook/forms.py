@@ -152,12 +152,12 @@ class CategoryForm(forms.ModelForm):
 class CashEntryForm(forms.ModelForm):
     class Meta:
         model = CashEntry
-        fields = ['transaction_type', 'amount', 'date', 'time', 'remarks', 'category', 'image', 'optional_field']
+        fields = ['transaction_type', 'amount', 'remarks', 'category', 'image', 'optional_field']
         widgets = {
             'transaction_type': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.NumberInput(attrs={'class': 'form-control'}),
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
+            # 'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            # 'time': forms.TimeInput(attrs={'class': 'form-control', 'type': 'time'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
