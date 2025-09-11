@@ -159,6 +159,8 @@ def book_detail(request, book_id):
     # Category filter
     if category_filter:
         entries = entries.filter(category__id=category_filter)
+    else:
+        logger.info("No category filter applied (All Categories selected)")
     
     # Transaction type filter
     if type_filter:
