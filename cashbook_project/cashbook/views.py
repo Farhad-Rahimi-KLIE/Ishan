@@ -64,7 +64,7 @@ def user_logout(request):
         logger.error(f"Logout error: {str(e)}")
         messages.error(request, 'An error occurred during logout. Please try again.')
         return redirect('homepage')
-    
+
 @login_required
 def homepage(request):
     # Get books the user owns or is a member of, sorted by created_at descending
@@ -72,7 +72,7 @@ def homepage(request):
         Q(created_by=request.user) | Q(members__user=request.user)
     ).distinct().order_by('-created_at')
     
-    # Calculate net balance for each book
+    # Calculate cash_in, cash_out, and net_balance for each book
     books_with_balance = []
     for book in books:
         cash_in = CashEntry.objects.filter(book=book, transaction_type='IN').aggregate(total_in=Sum('amount'))['total_in'] or 0
@@ -91,8 +91,56 @@ def homepage(request):
         'user': request.user
     })
 
-from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta  # For month calculations
+@login_required
+def edit_book(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    # Only Admins or book creators can edit books
+    if not (request.user.groups.filter(name='Admin').exists() or book.created_by == request.user):
+        messages.error(request, 'You do not have permission to edit this book.')
+        logger.error(f"Permission denied for User: {request.user.username}, Book ID: {book.id}")
+        return redirect('homepage')
+    
+    if request.method == 'POST':
+        form = BookForm(request.POST, instance=book)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Book updated successfully.')
+            logger.info(f"Book updated: Book ID: {book.id}, Name: {book.name}, Updated By: {request.user.username}")
+            return redirect('homepage')
+        else:
+            messages.error(request, 'Error updating book. Please check the form.')
+            logger.error(f"Form validation failed for Book ID: {book.id}, Errors: {form.errors.as_json()}")
+    else:
+        form = BookForm(instance=book)
+    
+    return render(request, 'edit_book.html', {
+        'form': form,
+        'book': book,
+    })
+
+@login_required
+def delete_book(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    # Only Admins or book creators can delete books
+    if not (request.user.groups.filter(name='Admin').exists() or book.created_by == request.user):
+        messages.error(request, 'You do not have permission to delete this book.')
+        logger.error(f"Permission denied for User: {request.user.username}, Book ID: {book.id}")
+        return redirect('homepage')
+    
+    if request.method == 'POST':
+        if CashEntry.objects.filter(book=book).exists():
+            messages.error(request, 'Cannot delete book because it contains entries.')
+            logger.warning(f"Attempt to delete Book ID: {book.id} with existing entries")
+            return redirect('homepage')
+        book.delete()
+        messages.success(request, 'Book deleted successfully.')
+        logger.info(f"Book deleted: Book ID: {book.id}, Name: {book.name}, Deleted By: {request.user.username}")
+        return redirect('homepage')
+    
+    return render(request, 'delete_book.html', {
+        'book': book,
+    })
+
 
 @login_required
 def book_detail(request, book_id):

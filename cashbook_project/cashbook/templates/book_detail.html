@@ -3,45 +3,93 @@
 
 {% block content %}
 <style>
-    /* Inline custom styles for gradients */
-    .bg-cash-in {
-        background: linear-gradient(135deg, #28a745, #34c759);
+    /* Reset default margins and ensure no gap */
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    /* Navbar styles */
+    .navbar-custom {
+        background: linear-gradient(135deg, #343a40, #495057);
+        color: white;
+        padding: 10px 15px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        margin: 0;
+    }
+    .navbar-custom .back-arrow {
+        font-size: 1.5rem;
+        color: white;
+        text-decoration: none;
+        margin-right: 15px;
+    }
+    .navbar-custom .book-title-container {
+        flex-grow: 1;
+    }
+    .navbar-custom .book-title {
+        font-size: 1.8rem; /* Larger font for book name */
+        font-weight: bold;
+        margin: 0;
+    }
+    .navbar-custom .book-creator {
+        font-size: 0.9rem; /* Smaller font for creator */
+        color: #adb5bd;
+        margin: 0;
+    }
+    .navbar-custom .nav-icons a {
+        color: white;
+        margin-left: 15px;
+        font-size: 1.2rem;
+        text-decoration: none;
+    }
+    .navbar-custom .nav-icons a:hover {
+        color: #adb5bd;
+    }
+    /* Summary card styles */
+    .summary-card {
+        background-color: #343a40; /* Dark background */
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
         color: white;
     }
-    .bg-cash-out {
-        background: linear-gradient(135deg, #dc3545, #ff6b6b);
-        color: white;
+    .summary-card .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin: 8px 0;
+        font-size: 1rem;
     }
-    .bg-net-positive {
-        background: linear-gradient(135deg, #007bff, #4dabf7);
-        color: white;
+    .summary-card .summary-label {
+        color: #ffffff; /* White text for labels */
     }
-    .bg-net-negative {
-        background: linear-gradient(135deg, #ff073a, #ff4d6d);
-        color: white;
+    .summary-card .summary-value.net-balance {
+        color: #ffffff; /* White text for Net Balance value */
     }
-    .table .cash-in {
-        color: #28a745 !important; /* Green for Cash In */
+    .summary-card .summary-value.cash-in {
+        color: #28a745; /* Green text for Cash In value */
+        font-weight: bold;
     }
-    .table .cash-out {
-        color: #dc3545 !important; /* Red for Cash Out */
-    }
-    .cash-in {
-        color: #28a745; /* Green for inline <p> */
-    }
-    .cash-out {
-        color: #dc3545; /* Red for inline <p> */
+    .summary-card .summary-value.cash-out {
+        color: #dc3545; /* Red text for Cash Out value */
+        font-weight: bold;
     }
     /* Horizontal filter scroll */
     .filter-container {
         display: flex;
         overflow-x: auto;
         white-space: nowrap;
-        padding-bottom: 10px;
-        scrollbar-width: thin; /* Firefox */
+        padding: 10px 0;
+        scrollbar-width: thin;
     }
     .filter-container::-webkit-scrollbar {
-        height: 8px; /* Chrome/Safari */
+        height: 8px;
     }
     .filter-container::-webkit-scrollbar-thumb {
         background: #6c757d;
@@ -50,57 +98,89 @@
     .filter-item {
         flex: 0 0 auto;
         margin-right: 10px;
-        min-width: 160px; /* Reduced for mobile */
+        min-width: 160px;
     }
-    /* Bottom fixed buttons */
-    .bottom-buttons {
-        position: fixed;
-        bottom: 10px;
-        left: 10px;
-        right: 10px;
-        display: flex;
-        justify-content: space-between;
-        z-index: 1000;
+    .filter-item label {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
     }
-    .bottom-buttons .btn {
-        padding: 8px 16px; /* Smaller padding for mobile */
-        font-size: 0.9rem; /* Smaller font */
+    .filter-item select, .filter-item input {
+        font-size: 0.85rem;
+        padding: 5px;
     }
     /* Table container */
     .table-container {
         margin-bottom: 60px; /* Space for fixed buttons */
-        overflow-x: auto; /* Horizontal scroll for table on mobile */
+        overflow-x: auto;
     }
     /* Responsive table */
     #cashbook-table {
-        font-size: 0.85rem; /* Smaller font for mobile */
+        font-size: 0.85rem;
     }
     #cashbook-table th, #cashbook-table td {
-        padding: 8px; /* Reduced padding */
-        white-space: nowrap; /* Prevent text wrapping */
+        padding: 8px;
+        white-space: nowrap;
+    }
+    #cashbook-table .cash-in {
+        color: #28a745 !important;
+    }
+    #cashbook-table .cash-out {
+        color: #dc3545 !important;
+    }
+    /* Bottom fixed buttons */
+    .bottom-buttons {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        z-index: 1000;
+        height: 50px;
+    }
+    .bottom-buttons .btn {
+        flex: 1;
+        border-radius: 0;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+    }
+    .bottom-buttons .bg-cash-in {
+        background: linear-gradient(135deg, #28a745, #34c759);
+        color: white;
+    }
+    .bottom-buttons .bg-cash-out {
+        background: linear-gradient(135deg, #dc3545, #ff6b6b);
+        color: white;
     }
     /* Mobile-specific adjustments */
     @media (max-width: 576px) {
-        h2 {
-            font-size: 1.5rem; /* Smaller heading */
+        .navbar-custom .book-title {
+            font-size: 1.4rem;
         }
-        .mb-4 {
-            font-size: 0.9rem; /* Smaller summary text */
+        .navbar-custom .book-creator {
+            font-size: 0.8rem;
+        }
+        .navbar-custom .nav-icons a {
+            font-size: 1rem;
+            margin-left: 10px;
         }
         .filter-item {
-            min-width: 120px; /* Even smaller for mobile */
+            min-width: 120px;
         }
-        .filter-item .form-label {
+        .filter-item label {
             font-size: 0.8rem;
         }
-        .filter-item .form-select,
-        .filter-item .form-control {
-            font-size: 0.8rem;
+        .filter-item select, .filter-item input {
+            font-size: 0.75rem;
             padding: 4px;
         }
+        .summary-card .summary-row {
+            font-size: 0.9rem;
+        }
         .bottom-buttons .btn {
-            padding: 6px 12px;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
         }
         .table-container {
             margin-bottom: 50px;
@@ -108,68 +188,84 @@
     }
 </style>
 
-<div class="container mt-2">
-    <h2>{{ book.name }}</h2>
-    
-    <p class="mb-4">
-        Cash In: <span class="cash-in">{{ cash_in|floatformat:2 }}</span> |
-        Cash Out: <span class="cash-out">{{ cash_out|floatformat:2 }}</span> |
-        Net Balance: <span class="{% if net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">{{ net_balance|floatformat:2 }}</span>
-    </p>
-
-    <div class="mb-3">
-        {% if can_generate_report %}
-            <a href="{% url 'generate_report' book.id %}" class="btn btn-primary btn-sm">Generate Report</a>
-        {% endif %}
-        {% if is_book_admin %}
-            <a href="{% url 'create_user_for_book' book.id %}" class="btn btn-info btn-sm">Create User</a>
-        {% endif %}
+<div class="container mt-0">
+    <!-- Custom Navbar -->
+    <div class="navbar-custom">
+        <a href="{% url 'homepage' %}" class="back-arrow"><i class="bi bi-arrow-left"></i></a>
+        <div class="book-title-container">
+            <div class="book-title">{{ book.name }}</div>
+            <div class="book-creator">Created by {{ book.created_by.username }}</div>
+        </div>
+        <div class="nav-icons">
+            {% if can_generate_report %}
+                <a href="{% url 'generate_report' book.id %}" title="Generate Report"><i class="bi bi-file-earmark-text"></i></a>
+            {% endif %}
+            {% if is_book_admin %}
+                <a href="{% url 'create_user_for_book' book.id %}" title="Create User"><i class="bi bi-person-plus"></i></a>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Filter Form with Horizontal Scroll -->
     <form method="get" class="mb-3" id="filter-form">
-    <div class="filter-container">
-        <div class="filter-item">
-            <!-- <label for="date_filter" class="form-label">Filter by Date:</label> -->
-            <select name="date_filter" id="date_filter" class="form-select">
-                <option value="" {% if not date_filter %}selected{% endif %}>All Time</option>
-                <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
-                <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>Yesterday</option>
-                <option value="this_month" {% if date_filter == 'this_month' %}selected{% endif %}>This Month</option>
-                <option value="last_month" {% if date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
-                <option value="custom" {% if date_filter == 'custom' %}selected{% endif %}>Custom Range</option>
-            </select>
-            <div id="date-range-inputs" style="display: {% if date_filter == 'custom' %}block{% else %}none{% endif %};">
-                <label for="start_date" class="form-label">Start Date:</label>
-                <input type="date" name="start_date" id="start_date" value="{% if date_filter == 'custom' %}{{ start_date|default_if_none:'' }}{% endif %}" class="form-control">
-                <label for="end_date" class="form-label">End Date:</label>
-                <input type="date" name="end_date" id="end_date" value="{% if date_filter == 'custom' %}{{ end_date|default_if_none:'' }}{% endif %}" class="form-control">
+        <div class="filter-container">
+            <div class="filter-item">
+                <label for="date_filter" class="form-label">Date Filter</label>
+                <select name="date_filter" id="date_filter" class="form-select">
+                    <option value="" {% if not date_filter %}selected{% endif %}>All Time</option>
+                    <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
+                    <option value="yesterday" {% if date_filter == 'yesterday' %}selected{% endif %}>Yesterday</option>
+                    <option value="this_month" {% if date_filter == 'this_month' %}selected{% endif %}>This Month</option>
+                    <option value="last_month" {% if date_filter == 'last_month' %}selected{% endif %}>Last Month</option>
+                    <option value="custom" {% if date_filter == 'custom' %}selected{% endif %}>Custom Range</option>
+                </select>
+                <div id="date-range-inputs" style="display: {% if date_filter == 'custom' %}block{% else %}none{% endif %};">
+                    <label for="start_date" class="form-label">Start Date</label>
+                    <input type="date" name="start_date" id="start_date" value="{% if date_filter == 'custom' %}{{ request.GET.start_date|default_if_none:'' }}{% endif %}" class="form-control">
+                    <label for="end_date" class="form-label">End Date</label>
+                    <input type="date" name="end_date" id="end_date" value="{% if date_filter == 'custom' %}{{ request.GET.end_date|default_if_none:'' }}{% endif %}" class="form-control">
+                </div>
+            </div>
+            <div class="filter-item">
+                <label for="category" class="form-label">Category</label>
+                <select name="category" id="category" class="form-select">
+                    <option value="" {% if not request.GET.category %}selected{% endif %}>All Categories</option>
+                    {% for category in categories %}
+                        <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-item">
+                <label for="type" class="form-label">Type</label>
+                <select name="type" id="type" class="form-select">
+                    <option value="" {% if not request.GET.type %}selected{% endif %}>All Types</option>
+                    <option value="IN" {% if request.GET.type == 'IN' %}selected{% endif %}>Cash In</option>
+                    <option value="OUT" {% if request.GET.type == 'OUT' %}selected{% endif %}>Cash Out</option>
+                </select>
             </div>
         </div>
-        <div class="filter-item">
-            <!-- <label for="category" class="form-label">Filter by Category</label> -->
-            <select name="category" id="category" class="form-select">
-              <option value="" {% if category_filter == '' or not category_filter %}selected{% endif %}>All Category</option>
-                {% for category in categories %}
-                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"s" %}selected{% endif %}>
-                        {{ category.name }}
-                    </option>
-                {% endfor %}
-            </select>
+    </form>
+
+    <!-- Summary Card -->
+    <div class="summary-card">
+        <div class="summary-row">
+            <span class="summary-label fw-bold">Net Balance</span>
+            <span class="summary-value net-balance">{{ net_balance|floatformat:2 }}</span>
         </div>
-        <div class="filter-item">
-            <!-- <label for="type" class="form-label">Filter by Type</label> -->
-            <select name="type" id="type" class="form-select">
-                <option value="" {% if not request.GET.type %}selected{% endif %}>All Types</option>
-                <option value="IN" {% if request.GET.type == 'IN' %}selected{% endif %}>Cash In</option>
-                <option value="OUT" {% if request.GET.type == 'OUT' %}selected{% endif %}>Cash Out</option>
-            </select>
+        <div class="summary-row">
+            <span class="summary-label fw-bold">Total In (+)</span>
+            <span class="summary-value cash-in">{{ cash_in|floatformat:2 }}</span>
+        </div>
+        <div class="summary-row">
+            <span class="summary-label fw-bold">Total Out (-)</span>
+            <span class="summary-value cash-out">{{ cash_out|floatformat:2 }}</span>
         </div>
     </div>
-</form>
 
     <!-- Entries Table -->
-    {% if page_obj %}
+    {% if entry_data %}
         <div class="table-container">
             <table class="table table-striped table-hover table-bordered" id="cashbook-table">
                 <thead class="table-dark">
@@ -177,8 +273,8 @@
                         <th scope="col" data-sort="date">Date</th>
                         <th scope="col" data-sort="type">Type</th>
                         <th scope="col" data-sort="amount">Amount</th>
-                        <th scope="col" data-sort="category">Category</th>
-                        <th scope="col" data-sort="remarks">Remarks</th>
+                        <!-- <th scope="col" data-sort="category">Category</th> -->
+                        <!-- <th scope="col" data-sort="remarks">Remarks</th> -->
                         <th scope="col" data-sort="balance">Running Balance</th>
                     </tr>
                 </thead>
@@ -192,8 +288,8 @@
                             <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
                                 {{ entry.amount|floatformat:2 }}
                             </td>
-                            <td>{{ entry.category.name|default:"N/A" }}</td>
-                            <td>{{ entry.remarks|default:"N/A" }}</td>
+                            <!-- <td>{{ entry.category.name|default:"N/A" }}</td> -->
+                            <!-- <td>{{ entry.remarks|default:"N/A" }}</td> -->
                             <td class="{% if running_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
                                 {{ running_balance|floatformat:2 }}
                             </td>
@@ -201,22 +297,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-            <!-- Pagination -->
-           <div class="pagination mt-3">
-    <span class="step-links">
-        {% if page_obj.has_previous %}
-            <a href="?page=1&date_filter={{ request.GET.date_filter|default_if_none:'' }}&start_date={{ request.GET.start_date|default_if_none:'' }}&end_date={{ request.GET.end_date|default_if_none:'' }}&category={{ request.GET.category|default_if_none:'' }}&type={{ request.GET.type|default_if_none:'' }}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-primary btn-sm">« First</a>
-            <a href="?page={{ page_obj.previous_page_number }}&date_filter={{ request.GET.date_filter|default_if_none:'' }}&start_date={{ request.GET.start_date|default_if_none:'' }}&end_date={{ request.GET.end_date|default_if_none:'' }}&category={{ request.GET.category|default_if_none:'' }}&type={{ request.GET.type|default_if_none:'' }}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-primary btn-sm">Previous</a>
-        {% endif %}
-        <span class="current">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-        </span>
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}&date_filter={{ request.GET.date_filter|default_if_none:'' }}&start_date={{ request.GET.start_date|default_if_none:'' }}&end_date={{ request.GET.end_date|default_if_none:'' }}&category={{ request.GET.category|default_if_none:'' }}&type={{ request.GET.type|default_if_none:'' }}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-primary btn-sm">Next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}&date_filter={{ request.GET.date_filter|default_if_none:'' }}&start_date={{ request.GET.start_date|default_if_none:'' }}&end_date={{ request.GET.end_date|default_if_none:'' }}&category={{ request.GET.category|default_if_none:'' }}&type={{ request.GET.type|default_if_none:'' }}{% if search_query %}&search={{ search_query }}{% endif %}" class="btn btn-outline-primary btn-sm">Last »</a>
-        {% endif %}
-    </span>
-</div>
         </div>
     {% else %}
         <p>No entries found for this book.</p>
@@ -225,8 +305,8 @@
     <!-- Cash In/Out Buttons at Bottom -->
     {% if can_add_entry %}
         <div class="bottom-buttons">
-            <a href="{% url 'add_entry' book_id=book.id transaction_type='IN' %}" class="btn bg-cash-in">Cash In</a>
-            <a href="{% url 'add_entry' book_id=book.id transaction_type='OUT' %}" class="btn bg-cash-out">Cash Out</a>
+            <a href="{% url 'add_entry' book_id=book.id transaction_type='IN' %}" class="btn bg-cash-in"> + CASH IN</a>
+            <a href="{% url 'add_entry' book_id=book.id transaction_type='OUT' %}" class="btn bg-cash-out"> - CASH OUT</a>
         </div>
     {% endif %}
 
@@ -255,7 +335,7 @@
                     <p><strong>Running Balance:</strong> <span id="modal-running-balance"></span></p>
                 </div>
                 <div class="modal-footer">
-                    {% if is_book_admin or entry.user == user or can_add_entry %}
+                    {% if is_book_admin or can_add_entry %}
                         <a id="edit-entry-btn" href="#" class="btn btn-warning btn-sm">Edit</a>
                         <a id="delete-entry-btn" href="#" class="btn btn-danger btn-sm">Delete</a>
                     {% endif %}
@@ -264,8 +344,6 @@
             </div>
         </div>
     </div>
-
-    <a href="{% url 'homepage' %}" class="btn btn-secondary btn-sm mt-3">Back to Home</a>
 </div>
 
 <script>
@@ -277,8 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     console.log('jQuery version:', jQuery.fn.jquery);
 
-
-     // Modal click handler
+    // Modal click handler
     jQuery('.entry-row').on('click', function() {
         try {
             var entry = JSON.parse(this.getAttribute('data-entry'));
@@ -309,12 +386,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-     // Get current URL parameters
+    // Get current URL parameters
     function getUrlParameter(name) {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name) || '';
     }
-
 
     // Handle filter changes
     jQuery('#date_filter, #category, #type, #start_date, #end_date').on('change', function(event) {
@@ -322,14 +398,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const newValue = this.value;
         const currentValue = getUrlParameter(filterId);
         console.log(`Filter changed: ${filterId}, New Value: '${newValue}', Current URL Value: '${currentValue}'`);
-
-         const form = jQuery('#filter-form');
+        const form = jQuery('#filter-form');
         if (filterId === 'category') {
             console.log('Submitting form for category with value:', newValue);
             form.submit();
         } else if (newValue !== currentValue) {
             console.log('Submitting form for', filterId, 'with value:', newValue);
-            // Clear date inputs for non-custom date filters
             if (filterId === 'date_filter' && newValue !== 'custom') {
                 document.getElementById('start_date').value = '';
                 document.getElementById('end_date').value = '';
@@ -340,12 +414,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    
     jQuery('#filter-form').on('submit', function(e) {
         console.log('Form submitted with data:', jQuery(this).serialize());
     });
 
-     const categorySelect = document.getElementById('category');
+    const categorySelect = document.getElementById('category');
     const urlCategory = getUrlParameter('category');
     if (categorySelect.value !== urlCategory) {
         console.log(`Category mismatch: DOM value '${categorySelect.value}', URL value '${urlCategory}'. Correcting to URL value.`);
@@ -353,20 +426,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Toggle date range inputs
-   function toggleDateRangeInputs() {
-    const dateFilter = document.getElementById('date_filter').value;
-    const dateRangeInputs = document.getElementById('date-range-inputs');
-    if (dateFilter === 'custom') {
-      dateRangeInputs.style.display = 'block';
-    } else {
-      dateRangeInputs.style.display = 'none';
-        document.getElementById('start_date').value = '';
-        document.getElementById('end_date').value = '';
-        // document.getElementById('filter-form').submit();
+    function toggleDateRangeInputs() {
+        const dateFilter = document.getElementById('date_filter').value;
+        const dateRangeInputs = document.getElementById('date-range-inputs');
+        if (dateFilter === 'custom') {
+            dateRangeInputs.style.display = 'block';
+        } else {
+            dateRangeInputs.style.display = 'none';
+            document.getElementById('start_date').value = '';
+            document.getElementById('end_date').value = '';
+        }
     }
-   }
-  toggleDateRangeInputs();
-
+    toggleDateRangeInputs();
+    document.getElementById('date_filter').addEventListener('change', toggleDateRangeInputs);
 
     // Table sorting
     const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
@@ -387,7 +459,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
 </script>
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
