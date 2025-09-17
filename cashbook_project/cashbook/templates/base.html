@@ -8,8 +8,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        /* .cash-in { color: #28a745; }
-        .cash-out { color: #dc3545; }  */
         .user-info { 
             font-weight: 500; 
             color: #ffffff; 
@@ -22,10 +20,61 @@
         .navbar-brand { font-weight: bold; }
         .nav-link { transition: color 0.2s; }
         .nav-link:hover { color: #007bff !important; }
-        </style>
-        <!-- Load jQuery and Bootstrap JS -->
-     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js" integrity="sha512-+k1pnlgt4F1H8L7t3z95o3/KO+o78INEcXTbnoJQ/F2VqDVhWoaiVml/OEHv9HsVgxUaVW+IbiZPUJQfF/YxZw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-     <script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
+        /* Mobile navbar slide-in from right, full-width */
+        @media (max-width: 991.98px) {
+            .navbar-collapse {
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 100%; /* Full width */
+                height: 100%;
+                background-color: #343a40; /* Match navbar bg-dark */
+                transform: translateX(100%); /* Start off-screen to the right */
+                transition: transform 0.3s ease-in-out;
+                z-index: 2000;
+                padding: 1rem;
+                overflow-y: auto;
+            }
+            .navbar-collapse.show {
+                transform: translateX(0); /* Slide in from right */
+            }
+            .navbar-nav {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .nav-item {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+            .nav-link {
+                color: #ffffff !important;
+                font-size: 1.1rem;
+                padding: 0.5rem 1rem;
+            }
+            .nav-link:hover {
+                background-color: #495057;
+                border-radius: 0.25rem;
+            }
+            .user-info {
+                width: 100%;
+                text-align: left;
+                margin-top: 0.5rem;
+            }
+            .navbar-toggler {
+                z-index: 2100; /* Ensure toggler is above sidebar */
+            }
+            .navbar-mobile-title {
+                color: #ffffff;
+                font-weight: bold;
+                font-size: 1.5rem;
+                padding: 1rem;
+                border-bottom: 1px solid #495057;
+                margin-bottom: 1rem;
+            }
+        }
+    </style>
+    <!-- Load jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -36,28 +85,25 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-mobile-title d-none d-lg-none">IshanCashBook</div>
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                         {% if user.groups.all.0.name == 'Admin' or user.groups.all.0.name == 'Manager' %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{% url 'add_book' %}">Add Book</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="{% url 'manage_categories'%}">Categories</a>
+                                <a class="nav-link" href="{% url 'manage_categories' %}">Categories</a>
                             </li>
                         {% endif %}
-                       {% if user.groups.all.0.name == 'Admin' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'manage_my_users' %}">Manage My Users</a>
-                        </li>
-                    {% endif %}
-
+                        {% if user.groups.all.0.name == 'Admin' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'manage_my_users' %}">Manage My Users</a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
                         </li>
                         <li class="nav-item">
                             <span class="nav-link user-info role-{{ user.groups.all.0.name|lower }}">
-                               {{ user.username }} ({{ user.groups.all.0.name|default:"No Role" }})
+                                {{ user.username }} ({{ user.groups.all.0.name|default:"No Role" }})
                             </span>
                         </li>
                     {% else %}

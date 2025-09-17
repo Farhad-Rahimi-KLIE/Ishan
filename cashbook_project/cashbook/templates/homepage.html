@@ -27,6 +27,7 @@
                         <th>Name</th>
                         <th>Created On</th>
                         <th>Net Balance</th>
+                        <th>Members</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -34,10 +35,11 @@
                     {% for item in books_with_balance %}
                         <tr class="clickable-row" data-href="{% url 'book_detail' item.book.id %}">
                             <td>{{ item.book.name }}</td>
-                            <td>{{ item.book.created_at|date:"Y-m-d H:i" }}</td>
+                            <td>{{ item.book.created_at }}</td>
                             <td class="{% if item.net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
                                 {{ item.net_balance|floatformat:2|default:"0.00" }}
                             </td>
+                            <td>{{ item.member_count|default:"0" }}</td>
                             <td class="actions-cell">
                                 <div class="dropdown">
                                     <button class="btn btn-link text-dark dropdown-toggle" type="button" id="dropdownMenu-{{ item.book.id }}" data-bs-toggle="dropdown" aria-expanded="false">
@@ -61,7 +63,7 @@
             </table>
         </div>
     {% else %}
-        <p class="text-muted">No cashbooks found. 
+        <p class="text-muted">No Books found. 
             {% if not user.groups.all.0.name == 'Partner' %}
                 <a href="{% url 'add_book' %}" class="text-primary">Create one</a>.
             {% endif %}

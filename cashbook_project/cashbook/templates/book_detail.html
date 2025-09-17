@@ -9,6 +9,9 @@
         padding: 0;
     }
     /* Navbar styles */
+    .navbar{
+        display: none;
+    }
     .navbar-custom {
         background: linear-gradient(135deg, #343a40, #495057);
         color: white;
@@ -17,7 +20,7 @@
         top: 0;
         left: 0;
         right: 0;
-        z-index: 1000;
+        z-index: 2000;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -34,12 +37,12 @@
         flex-grow: 1;
     }
     .navbar-custom .book-title {
-        font-size: 1.8rem; /* Larger font for book name */
+        font-size: 1.8rem;
         font-weight: bold;
         margin: 0;
     }
     .navbar-custom .book-creator {
-        font-size: 0.9rem; /* Smaller font for creator */
+        font-size: 0.9rem;
         color: #adb5bd;
         margin: 0;
     }
@@ -54,7 +57,7 @@
     }
     /* Summary card styles */
     .summary-card {
-        background-color: #343a40; /* Dark background */
+        background-color: #343a40;
         border-radius: 8px;
         padding: 15px;
         margin: 15px 0;
@@ -67,17 +70,17 @@
         font-size: 1rem;
     }
     .summary-card .summary-label {
-        color: #ffffff; /* White text for labels */
+        color: #ffffff;
     }
     .summary-card .summary-value.net-balance {
-        color: #ffffff; /* White text for Net Balance value */
+        color: #ffffff;
     }
     .summary-card .summary-value.cash-in {
-        color: #28a745; /* Green text for Cash In value */
+        color: #28a745;
         font-weight: bold;
     }
     .summary-card .summary-value.cash-out {
-        color: #dc3545; /* Red text for Cash Out value */
+        color: #dc3545;
         font-weight: bold;
     }
     /* Horizontal filter scroll */
@@ -108,43 +111,141 @@
         font-size: 0.85rem;
         padding: 5px;
     }
-    /* Table container */
-    .table-container {
-        margin-bottom: 60px; /* Space for fixed buttons */
-        overflow-x: auto;
+    /* Entry count styles */
+    .entry-count-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 10px 0;
     }
-    /* Responsive table */
-    #cashbook-table {
-        font-size: 0.85rem;
+    .entry-count-container hr {
+        flex: 1;
+        border: 0;
+        border-top: 1px solid #000000; /* Black horizontal lines */
+        margin: 0 10px;
     }
-    #cashbook-table th, #cashbook-table td {
-        padding: 8px;
+    .entry-count {
+        font-size: 1rem;
+        color: #000000; /* Black text */
+        text-align: center;
         white-space: nowrap;
     }
-    #cashbook-table .cash-in {
-        color: #28a745 !important;
+
+     .no-entries {
+        text-align: center;
+        font-weight: bold;
+        font-size: 1rem;
+        color: #000000; /* Black text to match entry count */
+        margin: 15px 0;
     }
-    #cashbook-table .cash-out {
-        color: #dc3545 !important;
+
+    /* Entry card styles */
+    .entry-card {
+        background-color: #343a40; /* Black background */
+        border: 1px solid #495057;
+        border-radius: 8px;
+        margin: 15px 0;
+        padding: 15px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        color: #ffffff; /* White text for readability */
+    }
+    .entry-card .header-content {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .entry-card .category {
+        font-size: 0.9rem;
+        color: #ffffff;
+        background-color: #495057; /* Shadowed background like net balance */
+        padding: 3px 8px;
+        border-radius: 4px;
+    }
+    .entry-card .cash-type {
+        font-size: 1rem;
+        font-weight: 500;
+    }
+    .entry-card .cash-in {
+        color: #28a745; /* Green for Cash In */
+    }
+    .entry-card .cash-out {
+        color: #dc3545; /* Red for Cash Out */
+    }
+    .entry-card .entry-content {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .entry-card .right-content {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .entry-card .amount {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-top: -34px;
+    }
+    .entry-card .net-balance {
+        font-size: 0.9rem;
+        color: #ffffff;
+        background-color: #495057; /* Slightly lighter than card background */
+        padding: 3px 8px;
+        border-radius: 4px;
+        margin-top: 5px;
+    }
+    .entry-card .remarks {
+        font-size: 0.9rem;
+        color: white;
+        margin-top: 4px;
+        padding-top: 10px;
+    }
+    .entry-card .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 10px;
+        font-size: 0.85rem;
+        color: #adb5bd;
+        border-top: 1px solid #495057;
+        padding-top: 10px;
+    }
+    .entry-card .created-by {
+        font-weight: bold;
+    }
+    .created-by .label {
+       font-weight: bold;
+       color: #28a745;
+    }
+    .entry-card .date-time {
+        display: flex;
+        gap: 10px;
+    }
+    .entry-card .entry-date,
+    .entry-card .entry-time {
+        font-style: italic;
     }
     /* Bottom fixed buttons */
     .bottom-buttons {
         position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
+        bottom: 14px;
+        left: 17px;
+        right: 53px;
         display: flex;
         z-index: 1000;
         height: 50px;
     }
     .bottom-buttons .btn {
         flex: 1;
-        border-radius: 0;
+        border-radius: 10px;
         font-size: 1rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0;
+        margin-left: 19px;
     }
     .bottom-buttons .bg-cash-in {
         background: linear-gradient(135deg, #28a745, #34c759);
@@ -168,6 +269,7 @@
         }
         .filter-item {
             min-width: 120px;
+            margin-top: 45px;
         }
         .filter-item label {
             font-size: 0.8rem;
@@ -179,11 +281,57 @@
         .summary-card .summary-row {
             font-size: 0.9rem;
         }
+        .entry-count-container {
+            margin: 8px 0;
+        }
+        .entry-count {
+            font-size: 0.9rem;
+        }
+        .entry-count-container hr {
+            margin: 0 5px;
+        }
+        .no-entries {
+            font-size: 0.9rem;
+            margin: 10px 0;
+        }
         .bottom-buttons .btn {
             font-size: 0.9rem;
         }
-        .table-container {
-            margin-bottom: 50px;
+        .entry-card {
+            padding: 10px;
+        }
+        .entry-card .header-content {
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .entry-card .category {
+            font-size: 0.8rem;
+            padding: 2px 6px;
+        }
+        .entry-card .cash-type {
+            font-size: 0.9rem;
+        }
+        .entry-card .amount {
+            font-size: 1rem;
+            margin-top: -34px;
+        }
+        .entry-card .net-balance {
+            font-size: 0.8rem;
+            padding: 2px 6px;
+        }
+        .entry-card .remarks {
+            font-size: 0.8rem;
+        }
+        .entry-card .footer {
+            font-size: 0.75rem;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .entry-card .date-time {
+            flex-direction: row;
+            gap: 8px;
         }
     }
 </style>
@@ -210,7 +358,6 @@
     <form method="get" class="mb-3" id="filter-form">
         <div class="filter-container">
             <div class="filter-item">
-                <label for="date_filter" class="form-label">Date Filter</label>
                 <select name="date_filter" id="date_filter" class="form-select">
                     <option value="" {% if not date_filter %}selected{% endif %}>All Time</option>
                     <option value="today" {% if date_filter == 'today' %}selected{% endif %}>Today</option>
@@ -227,7 +374,6 @@
                 </div>
             </div>
             <div class="filter-item">
-                <label for="category" class="form-label">Category</label>
                 <select name="category" id="category" class="form-select">
                     <option value="" {% if not request.GET.category %}selected{% endif %}>All Categories</option>
                     {% for category in categories %}
@@ -238,7 +384,6 @@
                 </select>
             </div>
             <div class="filter-item">
-                <label for="type" class="form-label">Type</label>
                 <select name="type" id="type" class="form-select">
                     <option value="" {% if not request.GET.type %}selected{% endif %}>All Types</option>
                     <option value="IN" {% if request.GET.type == 'IN' %}selected{% endif %}>Cash In</option>
@@ -264,42 +409,49 @@
         </div>
     </div>
 
-    <!-- Entries Table -->
+    <!-- Entry Count -->
+    <div class="entry-count-container">
+        <hr>
+        <div class="entry-count">Showing {{ entry_data|length }} {{ entry_data|length|pluralize:"entry,entries" }}</div>
+        <hr>
+    </div>
+
+    <!-- Entries Card List -->
     {% if entry_data %}
-        <div class="table-container">
-            <table class="table table-striped table-hover table-bordered" id="cashbook-table">
-                <thead class="table-dark">
-                    <tr>
-                        <th scope="col" data-sort="date">Date</th>
-                        <th scope="col" data-sort="type">Type</th>
-                        <th scope="col" data-sort="amount">Amount</th>
-                        <!-- <th scope="col" data-sort="category">Category</th> -->
-                        <!-- <th scope="col" data-sort="remarks">Remarks</th> -->
-                        <th scope="col" data-sort="balance">Running Balance</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for entry, serialized_entry, running_balance in entry_data %}
-                        <tr class="entry-row" data-entry='{{ serialized_entry|safe }}'>
-                            <td>{{ entry.date }}<br>{{ entry.time }}</td>
-                            <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
-                                {{ entry.get_transaction_type_display }}
-                            </td>
-                            <td class="{% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
+        <div class="entries-container">
+            {% for entry, serialized_entry, running_balance in entry_data %}
+                <div class="entry-card entry-row" data-entry='{{ serialized_entry|safe }}'>
+                    <div class="header-content">
+                        <div class="category">{{ entry.category.name|default:"N/A" }}</div>
+                        <div class="cash-type {% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
+                            {{ entry.get_transaction_type_display }}
+                        </div>
+                    </div>
+                    <div class="entry-content">
+                        <div class="right-content">
+                            <div class="amount {% if entry.transaction_type == 'IN' %}cash-in{% else %}cash-out{% endif %}">
                                 {{ entry.amount|floatformat:2 }}
-                            </td>
-                            <!-- <td>{{ entry.category.name|default:"N/A" }}</td> -->
-                            <!-- <td>{{ entry.remarks|default:"N/A" }}</td> -->
-                            <td class="{% if running_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
-                                {{ running_balance|floatformat:2 }}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </div>
+                            <div class="net-balance">
+                                Balance: {{ running_balance|floatformat:2 }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="remarks">{{ entry.remarks|default:"N/A" }}</div>
+                    <div class="footer">
+                     <div class="created-by">
+                        <span class="label">Entry by:</span> {{ entry.user.username|default:"N/A" }}
+                     </div>
+                        <div class="date-time">
+                            <div class="entry-date">{{ entry.date|default:"N/A" }}</div>
+                            <div class="entry-time">{{ entry.time|default:"N/A" }}</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
     {% else %}
-        <p>No entries found for this book.</p>
+        <p class="no-entries">No entries found for this book.</p>
     {% endif %}
 
     <!-- Cash In/Out Buttons at Bottom -->
@@ -393,7 +545,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Handle filter changes
-    jQuery('#date_filter, #category, #type, #start_date, #end_date').on('change', function(event) {
+    jQuery('#date_filter, #category, #type').on('change', function(event) {
         const filterId = this.id;
         const newValue = this.value;
         const currentValue = getUrlParameter(filterId);
@@ -412,6 +564,41 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.log('No change in', filterId, 'value. Skipping form submission.');
         }
+    });
+
+    // Handle date range inputs separately
+    jQuery('#start_date, #end_date').on('change', function(event) {
+        const filterId = this.id;
+        const newValue = this.value;
+        const currentValue = getUrlParameter(filterId);
+        console.log(`Date input changed: ${filterId}, New Value: '${newValue}', Current URL Value: '${currentValue}'`);
+        const dateFilter = document.getElementById('date_filter').value;
+        if (dateFilter === 'custom') {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            if (startDate && endDate) {
+                console.log('Both dates filled for custom range. Submitting form.');
+                jQuery('#filter-form').submit();
+            } else {
+                console.log('Only one date filled. Waiting for both dates to be entered.');
+            }
+        }
+    });
+
+    // Handle Apply button for custom date range
+    jQuery('#apply-date-btn').on('click', function() {
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        if (!startDate || !endDate) {
+            alert('Please enter both start and end dates.');
+            return;
+        }
+        if (startDate > endDate) {
+            alert('Start date cannot be after end date.');
+            return;
+        }
+        console.log('Apply button clicked. Submitting form with dates:', startDate, endDate);
+        jQuery('#filter-form').submit();
     });
 
     jQuery('#filter-form').on('submit', function(e) {
@@ -439,25 +626,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     toggleDateRangeInputs();
     document.getElementById('date_filter').addEventListener('change', toggleDateRangeInputs);
-
-    // Table sorting
-    const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
-    const comparer = (idx, asc) => (a, b) => ((v1, v2) =>
-        v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 :
-        v1.toString().localeCompare(v2)
-    )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
-
-    document.querySelectorAll('#cashbook-table th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => {
-            const tbody = th.closest('table').querySelector('tbody');
-            const idx = Array.from(th.parentNode.children).indexOf(th);
-            const asc = !(th.dataset.asc === 'true');
-            th.dataset.asc = asc;
-            Array.from(tbody.querySelectorAll('tr'))
-                .sort(comparer(idx, asc))
-                .forEach(tr => tbody.appendChild(tr));
-        });
-    });
 });
 </script>
 

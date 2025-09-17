@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Sum, Q
+from django.db.models import Sum, Q, Case, When, Value, DecimalField, F
 from django.contrib.auth.models import User, Group
 from .models import CashEntry, Category, Book, BookMember, UserProfile
 from .forms import CashEntryForm, CategoryForm, BookForm, UserRegistrationForm, CreateUserForBookForm
@@ -67,29 +67,45 @@ def user_logout(request):
 
 @login_required
 def homepage(request):
-    # Get books the user owns or is a member of, sorted by created_at descending
-    books = Book.objects.filter(
-        Q(created_by=request.user) | Q(members__user=request.user)
-    ).distinct().order_by('-created_at')
+    # Get books the user has access to
+    if request.user.groups.filter(name='Partner').exists():
+        books = Book.objects.filter(users=request.user)
+    else:
+        books = Book.objects.filter(created_by=request.user) | Book.objects.filter(users=request.user)
     
-    # Calculate cash_in, cash_out, and net_balance for each book
+    books = books.distinct()
+
+    # Calculate net balance and member count for each book
     books_with_balance = []
     for book in books:
-        cash_in = CashEntry.objects.filter(book=book, transaction_type='IN').aggregate(total_in=Sum('amount'))['total_in'] or 0
-        cash_out = CashEntry.objects.filter(book=book, transaction_type='OUT').aggregate(total_out=Sum('amount'))['total_out'] or 0
-        net_balance = cash_in - cash_out
+        entries = CashEntry.objects.filter(book=book)
+        net_balance = entries.aggregate(
+            net_balance=Sum(
+                Case(
+                    When(transaction_type='IN', then=F('amount')),
+                    When(transaction_type='OUT', then=-F('amount')),
+                    output_field=DecimalField(max_digits=10, decimal_places=2),
+                    default=Value(0.0)
+                )
+            )
+        )['net_balance'] or 0.0
+
+        # Count members (using BookMember model)
+        member_count = book.members.count()
+        if book.created_by and not book.members.filter(user=book.created_by).exists():
+            member_count += 1
+
         books_with_balance.append({
             'book': book,
-            'net_balance': net_balance
+            'net_balance': net_balance,
+            'member_count': member_count
         })
-    
-    # Log the sorted books for debugging
-    logger.info(f"Homepage books for user {request.user.username}: {[{'name': item['book'].name, 'created_at': item['book'].created_at} for item in books_with_balance]}")
-    
+
     return render(request, 'homepage.html', {
         'books_with_balance': books_with_balance,
         'user': request.user
     })
+   
 
 @login_required
 def edit_book(request, book_id):
