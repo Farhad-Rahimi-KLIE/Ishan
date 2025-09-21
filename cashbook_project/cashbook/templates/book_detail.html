@@ -90,6 +90,7 @@
         white-space: nowrap;
         padding: 10px 0;
         scrollbar-width: thin;
+        margin-top: 5rem;
     }
     .filter-container::-webkit-scrollbar {
         height: 8px;
@@ -110,6 +111,9 @@
     .filter-item select, .filter-item input {
         font-size: 0.85rem;
         padding: 5px;
+    }
+    .entries-container{
+        margin-bottom: 4rem;
     }
     /* Entry count styles */
     .entry-count-container {
@@ -267,9 +271,94 @@
             font-size: 1rem;
             margin-left: 10px;
         }
+        .filter-container {
+            display: flex;
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 10px 0;
+            scrollbar-width: thin;
+            margin-top: 1rem;
+        }
         .filter-item {
             min-width: 120px;
-            margin-top: 45px;
+            /* margin-top: 45px; */
+        }
+        .filter-item select, .filter-item input {
+            font-size: 0.75rem;
+            padding: 4px;
+        }
+        .summary-card .summary-row {
+            font-size: 0.9rem;
+        }
+        .entry-count-container {
+            margin: 8px 0;
+        }
+        .entry-count {
+            font-size: 0.9rem;
+        }
+        .entry-count-container hr {
+            margin: 0 5px;
+        }
+        .no-entries {
+            font-size: 0.9rem;
+            margin: 10px 0;
+        }
+        .bottom-buttons .btn {
+            font-size: 0.9rem;
+        }
+        .entry-card {
+            padding: 10px;
+        }
+        .entry-card .header-content {
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .entry-card .category {
+            font-size: 0.8rem;
+            padding: 2px 6px;
+        }
+        .entry-card .cash-type {
+            font-size: 0.9rem;
+        }
+        .entry-card .amount {
+            font-size: 1rem;
+            margin-top: -34px;
+        }
+        .entry-card .net-balance {
+            font-size: 0.8rem;
+            padding: 2px 6px;
+        }
+        .entry-card .remarks {
+            font-size: 0.8rem;
+        }
+        .entry-card .footer {
+            font-size: 0.75rem;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .entry-card .date-time {
+            flex-direction: row;
+            gap: 8px;
+        }
+    }
+
+    /* Tablet-specific adjustments */
+    @media (max-width: 1200px) {
+        .navbar-custom .book-title {
+            font-size: 1.4rem;
+        }
+        .navbar-custom .book-creator {
+            font-size: 0.8rem;
+        }
+        .navbar-custom .nav-icons a {
+            font-size: 1rem;
+            margin-left: 10px;
+        }
+        .filter-item {
+            min-width: 120px;
+            margin-top: 70px;
         }
         .filter-item label {
             font-size: 0.8rem;
@@ -397,14 +486,14 @@
     <div class="summary-card">
         <div class="summary-row">
             <span class="summary-label fw-bold">Net Balance</span>
-            <span class="summary-value net-balance">{{ net_balance|floatformat:2 }}</span>
+            <span class="summary-value net-balance fw-bold">{{ net_balance|floatformat:2 }}</span>
         </div>
         <div class="summary-row">
-            <span class="summary-label fw-bold">Total In (+)</span>
+            <span class="summary-label">Total In (+)</span>
             <span class="summary-value cash-in">{{ cash_in|floatformat:2 }}</span>
         </div>
         <div class="summary-row">
-            <span class="summary-label fw-bold">Total Out (-)</span>
+            <span class="summary-label">Total Out (-)</span>
             <span class="summary-value cash-out">{{ cash_out|floatformat:2 }}</span>
         </div>
     </div>
@@ -463,7 +552,7 @@
     {% endif %}
 
     <!-- Entry Details Modal -->
-    <div class="modal fade" id="entryModal" tabindex="-1" aria-labelledby="entryModalLabel" aria-hidden="true">
+    <div class="modal fade mt-5" id="entryModal" tabindex="-1" aria-labelledby="entryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">

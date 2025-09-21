@@ -85,8 +85,8 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <div class="navbar-mobile-title d-none d-lg-none">IshanCashBook</div>
                 <ul class="navbar-nav ms-auto">
+                    <div class="navbar-mobile-title">IshanCashBook</div>
                     {% if user.is_authenticated %}
                         {% if user.groups.all.0.name == 'Admin' or user.groups.all.0.name == 'Manager' %}
                             <li class="nav-item">

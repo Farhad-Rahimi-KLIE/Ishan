@@ -2,30 +2,29 @@
 
 {% block content %}
 <div class="container mt-4 cashbook-container">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- <div class="d-flex justify-content-between align-items-center mb-4">
         <h3>Your Books</h3>
         <div class="user-info">
             <i class="fas fa-user-circle fa-2x text-primary"></i>
             <span class="ms-2 text-dark fs-4">{{ user.username }}</span>
         </div>
-    </div>
+    </div> -->
 
-    {% if messages %}
+    <!-- {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
-    {% endif %}
+    {% endif %} -->
 
     {% if books_with_balance %}
         <div class="table-responsive">
             <table class="table table-striped cashbook-table">
-                <thead class="table-dark">
+                <thead class="table-dark col-sm-5">
                     <tr>
                         <th>Name</th>
-                        <th>Created On</th>
                         <th>Net Balance</th>
                         <th>Members</th>
                         <th>Actions</th>
@@ -35,7 +34,7 @@
                     {% for item in books_with_balance %}
                         <tr class="clickable-row" data-href="{% url 'book_detail' item.book.id %}">
                             <td>{{ item.book.name }}</td>
-                            <td>{{ item.book.created_at }}</td>
+                            <!-- <td>{{ item.book.created_at }}</td> -->
                             <td class="{% if item.net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
                                 {{ item.net_balance|floatformat:2|default:"0.00" }}
                             </td>
@@ -64,9 +63,9 @@
         </div>
     {% else %}
         <p class="text-muted">No Books found. 
-            {% if not user.groups.all.0.name == 'Partner' %}
+            <!-- {% if not user.groups.all.0.name == 'Partner' %}
                 <a href="{% url 'add_book' %}" class="text-primary">Create one</a>.
-            {% endif %}
+            {% endif %} -->
         </p>
     {% endif %}
 
@@ -180,6 +179,13 @@
     border-right: .3em solid transparent;
     border-bottom: 0;
     border-left: .3em solid transparent;
+}
+@media (max-width: 576px) { /* Bootstrap's 'sm' breakpoint */
+  .table-dark th {
+    font-size: 0.8rem; /* Smaller font size */
+    padding: 0.5rem; /* Reduced padding */
+    text-align: center; /* Center text for better readability */
+  }
 }
 </style>
 

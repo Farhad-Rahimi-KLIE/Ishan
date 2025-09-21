@@ -103,7 +103,6 @@ def homepage(request):
 
     return render(request, 'homepage.html', {
         'books_with_balance': books_with_balance,
-        'user': request.user
     })
    
 
