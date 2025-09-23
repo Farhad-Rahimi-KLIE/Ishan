@@ -72,8 +72,9 @@ def homepage(request):
 
     # Determine books based on user group
     if user.groups.filter(name='Admin').exists():
-        # Admins see all books
-        books = Book.objects.all()
+        # Admins see books they created or are assigned to via BookMember
+        books = Book.objects.filter(created_by=user) | Book.objects.filter(members__user=user)
+        books = books.distinct()
     elif user.groups.filter(name='Manager').exists():
         # Managers see only books where they are assigned as 'manager' in BookMember
         books = Book.objects.filter(members__user=user, members__role='manager').distinct()
