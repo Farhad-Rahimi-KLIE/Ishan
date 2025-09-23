@@ -1,9 +1,264 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+/* General container styling */
+.container.mt-4 {
+    max-width: 97%;
+    margin: 1rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Back arrow styling */
+.back-arrow {
+    display: inline-block;
+    font-size: 1.5rem;
+    color: #6c757d;
+    text-decoration: none;
+    margin-bottom: 1.2rem;
+    transition: color 0.3s ease, transform 0.2s ease;
+    position: relative;
+    left: 0.5rem;
+    touch-action: manipulation;
+}
+
+.back-arrow::before {
+    content: '\2190'; /* Unicode for left arrow */
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.back-arrow:hover {
+    color: #343a40;
+    transform: translateX(-3px);
+}
+
+/* Heading styling */
+h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Table styling */
+.table.table-striped {
+    width: 100%;
+    background-color: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Table header */
+.table thead {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.table thead th {
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.8rem;
+    text-align: left;
+}
+
+/* Table body */
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+.table tbody td {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Books list styling */
+.table tbody td ul {
+    margin: 0;
+    padding-left: 0; /* Remove padding for both desktop and mobile */
+    list-style: none; /* Remove bullets */
+}
+
+.table tbody td ul li {
+    font-size: 0.85rem;
+    color: #495057;
+    margin-bottom: 0.4rem;
+}
+
+/* Action buttons styling */
+.btn.btn-sm.btn-primary,
+.btn.btn-sm.btn-danger {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    margin: 0.3rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    touch-action: manipulation;
+}
+
+.btn.btn-sm.btn-primary {
+    background-color: #3498db;
+    border: none;
+}
+
+.btn.btn-sm.btn-primary:hover {
+    background-color: #2980b9;
+    transform: translateY(-2px);
+}
+
+.btn.btn-sm.btn-danger {
+    background-color: #e74c3c;
+    border: none;
+}
+
+.btn.btn-sm.btn-danger:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+}
+
+.text-muted {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #7f8c8d;
+}
+
+/* No users message styling */
+p {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    margin: 1.5rem 0;
+    padding: 0.8rem;
+    background-color: #fff3cd;
+    border-radius: 6px;
+    border: 1px solid #ffeeba;
+}
+
+/* Mobile and tablet responsive design */
+@media (max-width: 768px) {
+    .container.mt-4 {
+        margin: 0.5rem;
+        padding: 1rem;
+        align-items: center;
+    }
+
+    .back-arrow {
+        font-size: 1.3rem;
+        left: 0.3rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .table thead {
+        display: none; /* Hide headers on mobile for a card-like layout */
+    }
+
+    .table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 0.5rem;
+        background-color: #fff;
+    }
+
+    .table tbody td {
+        display: block;
+        text-align: left;
+        padding: 0.6rem;
+        border: none;
+        position: relative;
+    }
+
+    .table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #3498db;
+        display: inline-block;
+        width: 100px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        vertical-align: top;
+    }
+
+    .table tbody td[data-label="Books"] {
+        display: flex;
+        align-items: flex-start;
+    }
+
+    .table tbody td[data-label="Books"] ul {
+        padding-left: 0;
+        margin-left: 0;
+        display: inline-block;
+        vertical-align: top;
+    }
+
+    .table tbody td[data-label="Books"] .text-muted {
+        margin-left: 100px; /* Align "No books assigned" with other fields */
+    }
+
+    .table tbody td[data-label="Actions"] {
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .container.mt-4 {
+        padding: 0.8rem;
+    }
+
+    .back-arrow {
+        font-size: 1.2rem;
+        left: 0.2rem;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    .table tbody td {
+        font-size: 0.8rem;
+    }
+
+    .table tbody td::before {
+        width: 80px;
+        font-size: 0.8rem;
+    }
+
+    .table tbody td[data-label="Books"] .text-muted {
+        margin-left: 80px; /* Adjust for smaller screens */
+    }
+
+    .btn.btn-sm.btn-primary,
+    .btn.btn-sm.btn-danger {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}
+</style>
+
 <div class="container mt-4">
+    <a href="{% url 'homepage' %}" class="back-arrow">Back</a>
     <h2>Manage My Users</h2>
-    <a href="{% url 'homepage' %}" class="btn btn-secondary mb-3">Back to Homepage</a>
     
     {% if user_data %}
     <table class="table table-striped">
@@ -18,9 +273,9 @@
         <tbody>
             {% for data in user_data %}
             <tr>
-                <td>{{ data.user.username }}</td>
-                <td>{{ data.system_role }}</td>
-                <td>
+                <td data-label="Username">{{ data.user.username }}</td>
+                <td data-label="System Role">{{ data.system_role }}</td>
+                <td data-label="Books">
                     {% if data.books %}
                         <ul>
                             {% for book_info in data.books %}
@@ -28,10 +283,10 @@
                             {% endfor %}
                         </ul>
                     {% else %}
-                        No books assigned
+                        <span class="text-muted">No books assigned</span>
                     {% endif %}
                 </td>
-                <td>
+                <td data-label="Actions">
                     {% if data.can_manage %}
                         <a href="{% url 'edit_user' data.user.id %}" class="btn btn-sm btn-primary">Edit</a>
                         <a href="{% url 'delete_user' data.user.id %}" class="btn btn-sm btn-danger">Delete</a>

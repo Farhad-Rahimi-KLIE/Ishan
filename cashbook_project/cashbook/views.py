@@ -579,7 +579,7 @@ def add_entry(request, book_id, transaction_type):
                 entry.date = datetime.now().date()
                 entry.time = datetime.now().time()
                 entry.save()
-                messages.success(request, f'{"Cash In" if transaction_type == "IN" else "Cash Out"} added successfully.')
+                # messages.success(request, f'{"Cash In" if transaction_type == "IN" else "Cash Out"} added successfully.')
                 if 'save_and_add' in request.POST:
                     return redirect('add_entry', book_id=book.id, transaction_type=transaction_type)
                 return redirect('book_detail', book_id=book.id)
@@ -620,7 +620,7 @@ def edit_entry(request, book_id, pk):
         form = CashEntryForm(request.POST, request.FILES, instance=entry, book=book)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Entry updated successfully.')
+            # messages.success(request, 'Entry updated successfully.')
             return redirect('book_detail', book_id=book.id)
         else:
             messages.error(request, 'Error updating entry. Please check the form.')
@@ -652,7 +652,7 @@ def delete_entry(request, book_id, pk):
         return redirect('book_detail', book_id=book.id)
     if request.method == 'POST':
         entry.delete()
-        messages.success(request, 'Entry deleted successfully.')
+        # messages.success(request, 'Entry deleted successfully.')
         return redirect('book_detail', book_id=book.id)
     return render(request, 'delete_entry.html', {
         'book': book,

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4 {% if transaction_type == 'IN' %}bg-cash-in{% else %}bg-cash-out{% endif %}">
+<div class="container mt-4">
     <h2 class="{% if transaction_type == 'IN' %}text-cash-in{% else %}text-cash-out{% endif %}">
         Cash {{ transaction_type }} for {{ book.name }}
     </h2>
@@ -12,7 +12,7 @@
             <strong>Date:</strong> {{ current_date|date:"Y-m-d" }}
         </div>
     {% if messages %}
-        <div class="container mt-3">
+        <div class="container">
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                     {{ message }}

@@ -1,8 +1,225 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<style>
+/* General container styling */
+.container.mt-4 {
+    max-width: 97%;
+    margin: 1rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Back arrow styling */
+.back-arrow {
+    display: inline-block;
+    font-size: 1.5rem;
+    color: #6c757d;
+    text-decoration: none;
+    margin-bottom: 1.2rem;
+    transition: color 0.3s ease, transform 0.2s ease;
+    position: relative;
+    left: 0.5rem;
+    touch-action: manipulation;
+}
+
+.back-arrow::before {
+    content: '\2190'; /* Unicode for left arrow */
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.back-arrow:hover {
+    color: #343a40;
+    transform: translateX(-3px);
+}
+
+/* Heading styling */
+h2 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Table styling */
+.table.table-striped {
+    width: 100%;
+    background-color: #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Table header */
+.table thead {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.table thead th {
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 0.8rem;
+    text-align: left;
+}
+
+/* Table body */
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+.table tbody td {
+    padding: 0.8rem;
+    font-size: 0.9rem;
+    color: #2c3e50;
+    border-bottom: 1px solid #e9ecef;
+}
+
+/* Action buttons styling */
+.btn.btn-sm.btn-warning,
+.btn.btn-sm.btn-danger {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 4px;
+    margin: 0.3rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    touch-action: manipulation;
+}
+
+.btn.btn-sm.btn-warning {
+    background-color: #ffc107;
+    border: none;
+}
+
+.btn.btn-sm.btn-warning:hover {
+    background-color: #e0a800;
+    transform: translateY(-2px);
+}
+
+.btn.btn-sm.btn-danger {
+    background-color: #e74c3c;
+    border: none;
+}
+
+.btn.btn-sm.btn-danger:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
+}
+
+/* No categories message styling */
+p {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #7f8c8d;
+    margin: 1.5rem 0;
+    padding: 0.8rem;
+    background-color: #fff3cd;
+    border-radius: 6px;
+    border: 1px solid #ffeeba;
+}
+
+/* Mobile and tablet responsive design */
+@media (max-width: 768px) {
+    .container.mt-4 {
+        margin: 0.5rem;
+        padding: 1rem;
+    }
+
+    .back-arrow {
+        font-size: 1.3rem;
+        left: 0.3rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .table {
+        font-size: 0.85rem;
+    }
+
+    .table thead {
+        display: none; /* Hide headers on mobile for a card-like layout */
+    }
+
+    .table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 0.5rem;
+        background-color: #fff;
+    }
+
+    .table tbody td {
+        display: block;
+        text-align: left;
+        padding: 0.6rem;
+        border: none;
+        position: relative;
+    }
+
+    .table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #3498db;
+        display: inline-block;
+        width: 100px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        vertical-align: top;
+    }
+
+    .table tbody td[data-label="Actions"] {
+        text-align: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .container.mt-4 {
+        padding: 0.8rem;
+    }
+
+    .back-arrow {
+        font-size: 1.2rem;
+        left: 0.2rem;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    .table tbody td {
+        font-size: 0.8rem;
+    }
+
+    .table tbody td::before {
+        width: 80px;
+        font-size: 0.8rem;
+    }
+
+    .btn.btn-sm.btn-warning,
+    .btn.btn-sm.btn-danger {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+    }
+}
+</style>
+
 <div class="container mt-4">
+    <a href="{% url 'homepage' %}" class="back-arrow">Back</a>
     <h2>Manage Categories</h2>
+    
     {% if categories %}
         <table class="table table-striped">
             <thead>
@@ -14,8 +231,8 @@
             <tbody>
                 {% for category in categories %}
                     <tr>
-                        <td>{{ category.name }}</td>
-                        <td>
+                        <td data-label="Name">{{ category.name }}</td>
+                        <td data-label="Actions">
                             <a href="{% url 'edit_category' category.id %}" class="btn btn-sm btn-warning">Edit</a>
                             <a href="{% url 'delete_category' category.id %}" class="btn btn-sm btn-danger">Delete</a>
                         </td>
@@ -26,6 +243,5 @@
     {% else %}
         <p>No categories found. You can add categories when creating a cash entry.</p>
     {% endif %}
-    <a href="{% url 'homepage' %}" class="btn btn-secondary mt-3">Back to Home</a>
 </div>
 {% endblock %}
