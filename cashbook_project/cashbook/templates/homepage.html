@@ -1,23 +1,16 @@
 {% extends 'base.html' %}
+{% load group_filters %}  <!-- Add this to load the custom filter -->
 
 {% block content %}
 <div class="container mt-4 cashbook-container">
-    <!-- <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3>Your Books</h3>
-        <div class="user-info">
-            <i class="fas fa-user-circle fa-2x text-primary"></i>
-            <span class="ms-2 text-dark fs-4">{{ user.username }}</span>
-        </div>
-    </div> -->
-
-    <!-- {% if messages %}
+    {% if messages %}
         {% for message in messages %}
             <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         {% endfor %}
-    {% endif %} -->
+    {% endif %}
 
     {% if books_with_balance %}
         <div class="table-responsive">
@@ -34,7 +27,6 @@
                     {% for item in books_with_balance %}
                         <tr class="clickable-row" data-href="{% url 'book_detail' item.book.id %}">
                             <td>{{ item.book.name }}</td>
-                            <!-- <td>{{ item.book.created_at }}</td> -->
                             <td class="{% if item.net_balance >= 0 %}cash-in{% else %}cash-out{% endif %}">
                                 {{ item.net_balance|floatformat:2|default:"0.00" }}
                             </td>
@@ -45,7 +37,7 @@
                                         <i class="fas fa-ellipsis-v fa-lg"></i>
                                     </button>
                                     <ul class="dropdown-menu" aria-labelledby="dropdownMenu-{{ item.book.id }}">
-                                        {% if user.groups.all.0.name != 'Partner' %}
+                                        {% if 'Admin' in user.groups.all|lookup:'name' or item.book.created_by == user %}
                                             <li>
                                                 <a class="dropdown-item" href="{% url 'edit_book' item.book.id %}">Edit</a>
                                             </li>
@@ -62,14 +54,15 @@
             </table>
         </div>
     {% else %}
-        <p class="text-muted">No Books found. 
-            <!-- {% if not user.groups.all.0.name == 'Partner' %}
+        <p class="text-muted">
+            No Books found.
+            {% if 'Admin' in user.groups.all|lookup:'name' %}
                 <a href="{% url 'add_book' %}" class="text-primary">Create one</a>.
-            {% endif %} -->
+            {% endif %}
         </p>
     {% endif %}
 
-    {% if not user.groups.all.0.name == 'Partner' %}
+    {% if 'Admin' in user.groups.all|lookup:'name' %}
         <a href="{% url 'add_book' %}" class="btn btn-primary btn-circle btn-add-book" title="Add New Book">
             <i class="fas fa-plus fa-lg"></i>
         </a>
@@ -174,17 +167,16 @@
     margin-left: .255em;
     vertical-align: .255em;
     content: "";
-    border-top
-: .3em solid;
+    border-top: .3em solid;
     border-right: .3em solid transparent;
     border-bottom: 0;
     border-left: .3em solid transparent;
 }
-@media (max-width: 576px) { /* Bootstrap's 'sm' breakpoint */
+@media (max-width: 576px) {
   .table-dark th {
-    font-size: 0.8rem; /* Smaller font size */
-    padding: 0.5rem; /* Reduced padding */
-    text-align: center; /* Center text for better readability */
+    font-size: 0.8rem;
+    padding: 0.5rem;
+    text-align: center;
   }
 }
 </style>

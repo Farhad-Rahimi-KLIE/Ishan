@@ -67,13 +67,23 @@ def user_logout(request):
 
 @login_required
 def homepage(request):
-    # Get books the user has access to
-    if request.user.groups.filter(name='Partner').exists():
-        books = Book.objects.filter(users=request.user)
+    user = request.user
+    books = Book.objects.none()  # Initialize empty queryset
+
+    # Determine books based on user group
+    if user.groups.filter(name='Manager').exists() or user.groups.filter(name='Admin').exists():
+        # Managers and Admins see all books
+        books = Book.objects.all()
+    elif user.groups.filter(name='Partner').exists():
+        # Partners see only books they are members of
+        books = Book.objects.filter(members__user=user).distinct()
     else:
-        books = Book.objects.filter(created_by=request.user) | Book.objects.filter(users=request.user)
-    
-    books = books.distinct()
+        # Fallback: Show books created by or associated with the user
+        books = Book.objects.filter(created_by=user) | Book.objects.filter(members__user=user)
+        books = books.distinct()
+
+    # Debug: Log the books queryset
+    logger.info(f"User: {user.username}, Groups: {[g.name for g in user.groups.all()]}, Books fetched: {books.count()}")
 
     # Calculate net balance and member count for each book
     books_with_balance = []
@@ -101,10 +111,12 @@ def homepage(request):
             'member_count': member_count
         })
 
+    # Debug: Log the final books_with_balance
+    logger.info(f"User: {user.username}, Books with balance: {len(books_with_balance)}")
+
     return render(request, 'homepage.html', {
         'books_with_balance': books_with_balance,
     })
-   
 
 @login_required
 def edit_book(request, book_id):
@@ -486,9 +498,12 @@ def create_user_for_book(request, book_id):
 
 @login_required
 def add_book(request):
-    if request.user.groups.filter(name='Partner').exists():
-        messages.error(request, 'Partners cannot create books.')
+    # Only Admins can create books
+    if not request.user.groups.filter(name='Admin').exists():
+        messages.error(request, 'Only Admins can create books.')
+        logger.error(f"Permission denied for User: {request.user.username} to create book (not Admin)")
         return redirect('homepage')
+    
     if request.method == 'POST':
         form = BookForm(request.POST)
         if form.is_valid():
@@ -497,13 +512,14 @@ def add_book(request):
             book.save()
             BookMember.objects.create(book=book, user=request.user, role='admin')
             messages.success(request, 'Book created successfully.')
+            logger.info(f"Book created: Book ID: {book.id}, Name: {book.name}, Created By: {request.user.username}")
             return redirect('homepage')
         else:
             messages.error(request, 'Error creating book. Please check the form.')
+            logger.error(f"Form validation failed for book creation by User: {request.user.username}, Errors: {form.errors.as_json()}")
     else:
         form = BookForm()
     return render(request, 'add_book.html', {'form': form})
-
 
 @login_required
 def add_entry(request, book_id, transaction_type):
