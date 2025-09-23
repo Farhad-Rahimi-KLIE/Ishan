@@ -163,7 +163,7 @@ if (typeof jQuery === 'undefined') {
                         $('#id_category').append(newOption);
                         $('#addCategoryModal').modal('hide');
                         $('#categoryFormErrors').empty();
-                        alert('Category added successfully.');
+                        //alert('Category added successfully.');
                     } else {
                         $('#categoryFormErrors').html('<ul>' + $.map(response.errors, function(errors, field) {
                             return $.map(errors, function(error) {

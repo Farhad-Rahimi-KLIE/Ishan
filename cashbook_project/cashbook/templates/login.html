@@ -3,13 +3,13 @@
 {% block content %}
 <div class="container mt-4">
     <h2>Login</h2>
-    {% if messages %}
+    <!-- {% if messages %}
         <div>
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }}">{{ message }}</div>
             {% endfor %}
         </div>
-    {% endif %}
+    {% endif %} -->
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">
