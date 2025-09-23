@@ -71,9 +71,12 @@ def homepage(request):
     books = Book.objects.none()  # Initialize empty queryset
 
     # Determine books based on user group
-    if user.groups.filter(name='Manager').exists() or user.groups.filter(name='Admin').exists():
-        # Managers and Admins see all books
+    if user.groups.filter(name='Admin').exists():
+        # Admins see all books
         books = Book.objects.all()
+    elif user.groups.filter(name='Manager').exists():
+        # Managers see only books where they are assigned as 'manager' in BookMember
+        books = Book.objects.filter(members__user=user, members__role='manager').distinct()
     elif user.groups.filter(name='Partner').exists():
         # Partners see only books they are members of
         books = Book.objects.filter(members__user=user).distinct()
