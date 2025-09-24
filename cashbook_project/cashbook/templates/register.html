@@ -1,39 +1,93 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Register</h2>
-    {% if form.errors %}
-        <div class="alert alert-danger">
-            <strong>Form Errors:</strong>
-            <ul>
-                {% for field in form %}
-                    {% for error in field.errors %}
-                        <li>{{ field.label }}: {{ error }}</li>
+<div class="container d-flex justify-content-center align-items-start" style="padding-top: 5px;">
+    <div class="card shadow-lg p-4 rounded-3" style="max-width: 400px; width: 100%; background: rgba(255, 255, 255, 0.95);">
+        <h2 class="text-center mb-4 text-primary fw-bold">Create an Account</h2>
+        {% if form.errors %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Form Errors:</strong>
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ field.label }}: {{ error }}</li>
+                        {% endfor %}
                     {% endfor %}
-                {% endfor %}
-                {% for error in form.non_field_errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="id_username" class="form-label">Username</label>
-            {{ form.username }}
-        </div>
-        <div class="mb-3">
-            <label for="id_password1" class="form-label">Password</label>
-            {{ form.password1 }}
-        </div>
-        <div class="mb-3">
-            <label for="id_password2" class="form-label">Confirm Password</label>
-            {{ form.password2 }}
-        </div>
-        <button type="submit" class="btn btn-primary">Register</button>
-        <a href="{% url 'login' %}" class="btn btn-secondary">Back to Login</a>
-    </form>
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_username" class="form-label text-dark fw-semibold">Username</label>
+                {{ form.username }}
+            </div>
+            <div class="mb-3">
+                <label for="id_password1" class="form-label text-dark fw-semibold">Password</label>
+                {{ form.password1 }}
+            </div>
+            <div class="mb-4">
+                <label for="id_password2" class="form-label text-dark fw-semibold">Confirm Password</label>
+                {{ form.password2 }}
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill mb-3 transition">Register</button>
+        </form>
+        <p class="text-center mt-3 text-muted">Already have an account? <a href="{% url 'login' %}" class="text-primary">Log in</a></p>
+    </div>
 </div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #6b48ff, #00ddeb);
+        background-attachment: fixed;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .card {
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    .form-control {
+        border: 2px solid #e0e0e0;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-control:focus {
+        border-color: #6b48ff;
+        box-shadow: 0 0 8px rgba(107, 72, 255, 0.4);
+    }
+    .btn-primary {
+        background: linear-gradient(90deg, #6b48ff, #00ddeb);
+        border: none;
+        font-weight: 600;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(90deg, #5538cc, #00b7c2);
+        transform: scale(1.05);
+    }
+    .btn-outline-secondary {
+        border-color: #6b48ff;
+        color: #6b48ff;
+    }
+    .btn-outline-secondary:hover {
+        background: #6b48ff;
+        color: #fff;
+        transform: scale(1.05);
+    }
+    .transition {
+        transition: all 0.3s ease;
+    }
+    .alert {
+        font-size: 0.9rem;
+    }
+    .container {
+        margin-top: 5px; /* Small gap from navbar */
+    }
+</style>
 {% endblock %}

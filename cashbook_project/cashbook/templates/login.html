@@ -1,49 +1,81 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Login</h2>
-    <!-- {% if messages %}
-        <div>
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        </div>
-    {% endif %} -->
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" name="username" id="username" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password" id="password" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-        <a href="{% url 'register' %}" class="btn btn-secondary">Register</a>
-    </form>
+<div class="container d-flex justify-content-center align-items-start" style="padding-top: 5px;">
+    <div class="card shadow-lg p-4 rounded-3" style="max-width: 400px; width: 100%; background: rgba(255, 255, 255, 0.95);">
+        <h2 class="text-center mb-4 text-primary fw-bold">Welcome Back</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Error:</strong> Invalid username or password.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            <div class="mb-3">
+                <label for="username" class="form-label text-dark fw-semibold">Username</label>
+                <input type="text" name="username" id="username" class="form-control form-control-lg rounded-pill" placeholder="Enter your username" required>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label text-dark fw-semibold">Password</label>
+                <input type="password" name="password" id="password" class="form-control form-control-lg rounded-pill" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-lg w-100 rounded-pill mb-3 transition">Login</button>
+            <!-- <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-lg w-100 rounded-pill transition">Register</a> -->
+        </form>
+        <p class="text-center mt-3 text-muted">Not have Account Created. <a href="{% url 'register' %}" class="text-primary">Register</a></p>
+    </div>
 </div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #6b48ff, #00ddeb);
+        background-attachment: fixed;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .card {
+        border: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    .form-control {
+        border: 2px solid #e0e0e0;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .form-control:focus {
+        border-color: #6b48ff;
+        box-shadow: 0 0 8px rgba(107, 72, 255, 0.4);
+    }
+    .btn-primary {
+        background: linear-gradient(90deg, #6b48ff, #00ddeb);
+        border: none;
+        font-weight: 600;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(90deg, #5538cc, #00b7c2);
+        transform: scale(1.05);
+    }
+    .btn-outline-secondary {
+        border-color: #6b48ff;
+        color: #6b48ff;
+    }
+    .btn-outline-secondary:hover {
+        background: #6b48ff;
+        color: #fff;
+        transform: scale(1.05);
+    }
+    .transition {
+        transition: all 0.3s ease;
+    }
+    .alert {
+        font-size: 0.9rem;
+    }
+    /* Ensure container is close to the navbar */
+    .container {
+        margin-top: 5px; /* Adjust this value (2px or 5px) as needed */
+    }
+</style>
 {% endblock %}
-
-
-{% comment %} {% extends 'base.html' %}
-
-{% block content %}
-<div class="container mt-4">
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="username" class="form-label">Username</label>
-            <input type="text" name="username" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" name="password" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-        <a href="{% url 'register' %}" class="btn btn-secondary">Register</a>
-    </form>
-</div>
-{% endblock %} {% endcomment %}

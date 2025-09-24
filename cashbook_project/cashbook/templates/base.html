@@ -8,69 +8,108 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
-        .user-info { 
-            font-weight: 500; 
-            color: #ffffff; 
-            padding: 0.5rem 1rem; 
-            border-radius: 0.25rem; 
-        }
-        .role-admin { background-color: #dc3545; } /* Red for Admin */
-        .role-manager { background-color: #007bff; } /* Blue for Manager */
-        .role-user { background-color: #6c757d; } /* Gray for User */
-        .navbar-brand { font-weight: bold; }
-        .nav-link { transition: color 0.2s; }
-        .nav-link:hover { color: #007bff !important; }
 
-        /* Mobile navbar slide-in from right, full-width */
-        @media (max-width: 991.98px) {
-            .navbar-collapse {
-                position: fixed;
-                top: 0;
-                right: 0;
-                width: 100%; /* Full width */
-                height: 100%;
-                background-color: #343a40; /* Match navbar bg-dark */
-                transform: translateX(100%); /* Start off-screen to the right */
-                transition: transform 0.3s ease-in-out;
-                z-index: 2000;
-                padding: 1rem;
-                overflow-y: auto;
+       :root {
+            --primary-color: #6c63ff;
+            --secondary-color: #ff4b91;
+            --text-color: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #2c2c54 0%, #1e1e3f 100%);
+        }
+
+        .navbar-modern {
+            background: var(--bg-gradient);
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--text-color);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: transform 0.3s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.05);
+        }
+
+        .nav-link {
+            color: var(--text-color) !important;
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link:hover {
+            color: var(--secondary-color) !important;
+        }
+
+        .user-info {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .role-admin { border-left: 3px solid var(--primary-color); }
+        .role-manager { border-left: 3px solid #00ccff; }
+        .role-no-role { border-left: 3px solid #cccccc; }
+
+        .navbar-toggler {
+            border: none;
+            color: var(--text-color);
+        }
+
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255, 255, 255, 0.8)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+        }
+
+        .navbar-mobile-title {
+            display: none;
+            color: var(--text-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 1rem;
+        }
+
+        @media (max-width: 991px) {
+            .navbar-modern {
+                padding: 0.5rem 0;
             }
-            .navbar-collapse.show {
-                transform: translateX(0); /* Slide in from right */
-            }
-            .navbar-nav {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .nav-item {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-            .nav-link {
-                color: #ffffff !important;
-                font-size: 1.1rem;
-                padding: 0.5rem 1rem;
-            }
-            .nav-link:hover {
-                background-color: #495057;
-                border-radius: 0.25rem;
-            }
-            .user-info {
-                width: 100%;
-                text-align: left;
-                margin-top: 0.5rem;
-            }
-            .navbar-toggler {
-                z-index: 2100; /* Ensure toggler is above sidebar */
-            }
+
             .navbar-mobile-title {
-                color: #ffffff;
-                font-weight: bold;
-                font-size: 1.5rem;
+                display: block;
+            }
+
+            .navbar-nav {
+                background: var(--bg-gradient);
                 padding: 1rem;
-                border-bottom: 1px solid #495057;
-                margin-bottom: 1rem;
+                border-radius: 10px;
+            }
+
+            .nav-link {
+                margin: 0.5rem 0;
             }
         }
     </style>
@@ -78,15 +117,14 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-modern">
         <div class="container">
             <a class="navbar-brand" href="{% url 'homepage' %}">IshanZada Cashbook</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <div class="navbar-mobile-title">IshanCashBook</div>
+                <ul class="navbar-nav ms-auto align-items-center">
                     {% if user.is_authenticated %}
                         {% if user.groups.all.0.name == 'Admin' or user.groups.all.0.name == 'Manager' %}
                             <li class="nav-item">
